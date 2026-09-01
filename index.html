@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="5Hco35692irWDIIn4GZaqC">
+<head data-page-node-id="H7NR3nrNaQEoZ97B2roxiw">
+<meta charset="utf-8" data-page-node-id="IB8VXnATzoP7SADmf7aYUG">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-page-node-id="p5UcGosSc1AhzVKoSzCoKJ">
+<title>婚宴席位安排</title>
+<style>
+:root{
+  --bg:#FAF8F5; --card:#FFFFFF; --line:#E8E3DA; --line2:#D8D2C6;
+  --ink:#2C2A26; --ink2:#6B665E; --ink3:#9C968B;
+  --brand:#C0392B; --brand-soft:#FBEDEA;
+  --ok:#2E7D5B; --warn:#B26A00; --info:#2D6FB8;
+  --r:10px; --r-lg:14px;
+  --rail:340px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+button{cursor:pointer;background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:7px 12px}
+button:hover{border-color:var(--ink3)}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button.primary:hover{background:#A93226}
+button.ghost{background:transparent;border-color:transparent;color:var(--ink2);padding:6px 8px}
+button.ghost:hover{background:rgba(0,0,0,.04);color:var(--ink)}
+button.danger{color:var(--brand);border-color:var(--line2)}
+button.sm{padding:4px 9px;font-size:13px;border-radius:7px}
+input,select,textarea{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;width:100%;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--brand)}
+textarea{resize:vertical;line-height:1.7}
+
+/* ---------- 布局 ---------- */
+.app{max-width:1560px;margin:0 auto}
+header.top{position:sticky;top:0;z-index:40;background:rgba(250,248,245,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1560px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-size:16px;font-weight:600;letter-spacing:.5px}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--ink3);letter-spacing:0}
+.stats{display:flex;gap:16px;margin-left:auto;flex-wrap:wrap}
+.stat{text-align:right;line-height:1.25}
+.stat b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--ink3)}
+.top-actions{display:flex;gap:6px;align-items:center}
+
+nav.tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;border-bottom:1px solid var(--line);background:var(--card)}
+nav.tabs button{background:transparent;border:none;border-bottom:2px solid transparent;border-radius:0;padding:10px 14px;color:var(--ink2);white-space:nowrap}
+nav.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+
+main{padding:16px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) var(--rail);gap:16px;align-items:start}
+.rail{position:sticky;top:104px;display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.panel > h3{margin:0;padding:11px 14px;font-size:13px;font-weight:600;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.panel > h3 .sp{margin-left:auto;font-weight:400;color:var(--ink3);font-size:12px}
+.panel-body{padding:12px 14px}
+
+/* ---------- 平面图 ---------- */
+/* ---------- 平面图：D C B A 四竖排 + 中央 T 台 ---------- */
+.floor-grid{display:flex;flex-direction:row;align-items:stretch;gap:4px;overflow-x:auto;padding-bottom:8px}
+.fcol{display:flex;flex-direction:column;flex:0 0 auto;width:128px}
+.col-hd{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:8px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.col-hd h4{margin:0;font-size:14px;font-weight:600}
+.col-hd .cnt{font-size:11px;color:var(--ink3)}
+.col-hd .ops{margin-top:2px}
+.col-tables{display:flex;flex-direction:column;gap:8px}
+.fcol .tbl .ring{width:58px;height:58px}
+.fcol .tbl.main .ring{width:66px;height:66px}
+.floor-add{flex:0 0 auto;display:flex;align-items:flex-start;padding-top:34px}
+.tstage{flex:0 0 auto;align-self:stretch;width:46px;position:relative;margin:0 3px;
+  background:linear-gradient(180deg, rgba(192,57,43,.05), rgba(192,57,43,.11), rgba(192,57,43,.05))}
+.tstage::before{content:"";position:absolute;top:16px;bottom:16px;left:50%;width:4px;transform:translateX(-50%);
+  background:var(--brand);border-radius:3px;box-shadow:0 0 10px rgba(192,57,43,.55)}
+.tstage::after{content:"";position:absolute;top:16px;bottom:16px;left:calc(50% - 9px);width:1px;background:var(--brand);opacity:.35}
+.tstage span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);white-space:nowrap;
+  background:var(--brand);color:#fff;font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;letter-spacing:3px;
+  box-shadow:0 2px 10px rgba(192,57,43,.4)}
+.tbl{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 6px 6px;text-align:center;cursor:pointer;transition:border-color .12s,background .12s}
+.tbl:hover{border-color:var(--ink3)}
+.tbl.sel{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px rgba(192,57,43,.12)}
+.tbl.full{background:#F4F7F4}
+.tbl.main{border:2px solid var(--brand);background:var(--brand-soft);box-shadow:0 0 0 3px rgba(192,57,43,.15)}
+.tbl.main .tname{color:var(--brand);font-weight:700;font-size:13px}
+.tbl.main .tnum{font-size:17px}
+.tbl .ring{width:74px;height:74px;margin:0 auto}
+.tbl .tname{font-size:12px;color:var(--ink2);margin-top:2px}
+.tbl .tnum{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.tbl .tnum small{font-weight:400;color:var(--ink3);font-size:12px}
+
+/* ---------- 宾客池 ---------- */
+.pool-wrap{max-height:calc(100vh - 340px);display:flex;flex-direction:column}
+.pool{display:flex;flex-wrap:wrap;gap:6px;overflow:auto;padding:2px;min-height:80px}
+.pool.empty-hint{align-items:center;justify-content:center;color:var(--ink3);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);background:var(--card);font-size:13px;cursor:grab;user-select:none;touch-action:pan-y;max-width:100%}
+.chip:hover{border-color:var(--ink3)}
+.chip.sel{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+.chip .dot{width:7px;height:7px;border-radius:50%;flex:none}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip.dim{opacity:.25}
+
+/* ---------- 座位槽 ---------- */
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.slot{display:flex;align-items:center;gap:6px;min-height:34px;padding:5px 8px;border:1px dashed var(--line2);border-radius:8px;background:var(--card);color:var(--ink3);font-size:13px;cursor:pointer;touch-action:pan-y;overflow:hidden}
+.slot .idx{font-size:11px;color:var(--ink3);flex:none;min-width:26px}
+.slot.filled{border-style:solid;border-color:var(--line2);color:var(--ink);background:var(--card)}
+.slot.hint{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+.slot.hover{border-color:var(--brand);background:var(--brand-soft)}
+.slot .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .x{margin-left:auto;color:var(--ink3);flex:none;font-size:15px;line-height:1}
+.slot .x:hover{color:var(--brand)}
+.slot.editing{border-style:solid;border-color:var(--brand);background:var(--brand-soft);padding:2px 4px;cursor:default}
+.slot-input{width:100%;border:none;background:transparent;outline:none;padding:2px 3px;font-size:13px;color:var(--brand);min-width:0}
+.slot-input::placeholder{color:var(--ink3);font-size:12px}
+
+/* ---------- 婚车 ---------- */
+.cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.car{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px}
+.car-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.car-hd .cname{font-weight:600}
+.car-hd .cdrv{margin-left:auto;font-size:12px;color:var(--ink2);background:var(--bg);padding:2px 8px;border-radius:6px}
+.car .slot{margin-bottom:5px;width:100%}
+
+/* ---------- 名单表 ---------- */
+table.grid{width:100%;border-collapse:collapse;font-size:13px}
+table.grid th,table.grid td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left}
+table.grid th{color:var(--ink3);font-weight:500;font-size:12px}
+table.grid tbody tr:hover{background:var(--bg)}
+.tagpill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px}
+
+/* ---------- 打印视图 ---------- */
+.print-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.pcard{border:1px solid var(--line2);border-radius:var(--r);padding:12px;background:var(--card);break-inside:avoid}
+.pcard h5{margin:0 0 2px;font-size:15px;font-weight:600}
+.pcard .meta{font-size:12px;color:var(--ink3);margin-bottom:8px}
+.pcard ol{margin:0;padding-left:20px}
+.pcard li{padding:1px 0}
+.pcard li.empty{color:var(--ink3);list-style:none;margin-left:-14px}
+
+/* ---------- 弹窗 ---------- */
+.mask{position:absolute;inset:0;background:rgba(44,42,38,.42);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.modal{background:var(--card);border-radius:var(--r-lg);width:100%;max-width:620px;margin:auto;overflow:hidden}
+.modal h3{margin:0;padding:14px 18px;font-size:15px;border-bottom:1px solid var(--line)}
+.modal .mb{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.modal .mf .lf{margin-right:auto;font-size:12px;color:var(--ink3)}
+.row{display:flex;gap:10px;align-items:center}
+.row label{flex:none;width:82px;font-size:13px;color:var(--ink2)}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld > span{font-size:12px;color:var(--ink2)}
+.zonelist{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto}
+.zonerow{display:flex;gap:8px;align-items:center}
+.zonerow input{flex:1}
+
+/* ---------- 拖拽幽灵 ---------- */
+#ghost{position:absolute;z-index:200;pointer-events:none;padding:4px 11px;border-radius:999px;background:var(--card);border:1px solid var(--brand);box-shadow:0 4px 14px rgba(0,0,0,.16);font-size:13px;opacity:.95;transform:translate(-50%,-50%)}
+#syncbar{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;border-bottom:1px solid var(--line)}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--ink3);flex:none}
+.sdot.on{background:var(--ok)} .sdot.err{background:var(--brand)} .sdot.wait{background:var(--warn)}
+.banner{background:var(--brand-soft);border:1px solid #F0C4BC;color:#8C2A20;border-radius:8px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.hintbox{font-size:12px;color:var(--ink3);line-height:1.7}
+.sep{height:1px;background:var(--line);margin:2px 0}
+.empty{color:var(--ink3);font-size:13px;padding:24px;text-align:center}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .rail{position:sticky;bottom:0;top:auto;z-index:30;order:2;
+    background:var(--bg);border-top:1px solid var(--line);margin:0 -16px -16px;padding:10px 12px;
+    box-shadow:0 -6px 16px rgba(0,0,0,.05)}
+  .pool-wrap{max-height:30vh}
+  .stats{gap:12px;width:100%;order:3}
+  .top-in{gap:10px}
+  .fcol{width:104px}
+  .fcol .tbl .ring{width:46px;height:46px}
+  .tstage{width:22px}
+  .slot .idx{min-width:22px}
+}
+@media print{
+  body{background:#fff}
+  header.top,nav.tabs,.rail,.no-print,.mask{display:none !important}
+  main{padding:0}
+  .print-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .pcard{border-color:#999}
+}
+</style>
+</head>
+<body data-page-node-id="pLWiVb30zoIuej6e4VXHPg">
+<div class="app" data-page-node-id="SlNGgwqM0I3EfxeTREY4nn">
+  <header class="top" data-page-node-id="VxC3OvZvccQBC05Guz9c0R">
+    <div class="top-in" data-page-node-id="ub6fx5QvPbhBdJlDFQ0nY2">
+      <div class="brand" id="brand" data-page-node-id="GahCTHmr3oqBoXaNH4ydba">婚宴席位安排<small id="brandSub" data-page-node-id="WQb5UEOLd3BJ6NQEMe7kuX">未命名</small></div>
+      <div class="stats" data-page-node-id="yOXvQgk0vSNmIxOIB8GW4K">
+        <div class="stat" data-page-node-id="jAVOsMytndd3r44GjdJxv2"><b id="stGuest" data-page-node-id="ytGJfL343dT8HEijYRtrIS">0</b><span data-page-node-id="r0dGuwqCR1H2dieDRbxjIN">宾客总数</span></div>
+        <div class="stat" data-page-node-id="AKO1irrvJBmG2btb4UMp8q"><b id="stSeated" data-page-node-id="L6UzYsXlowaODOhEu1CAAv">0</b><span data-page-node-id="LCYYyL7LCE4qwuYevuCLJR">已入座</span></div>
+        <div class="stat" data-page-node-id="djlEmQ7wAVqAohZNp1CelH"><b id="stLeft" data-page-node-id="GVGzLHF2AVzHRbOpswAUSn">0</b><span data-page-node-id="mVR7lxfrb7P8W44Kh0CtFu">未安排</span></div>
+        <div class="stat" data-page-node-id="zHsvpac0XGZQCTr7a0T2aA"><b id="stFree" data-page-node-id="fth244qqtBP3S2v8Fh6dRf">0</b><span data-page-node-id="gl435s4xvjzdWIB7fcWWMa">空位</span></div>
+      </div>
+      <div class="top-actions no-print" data-page-node-id="uaYrW3Y47c3Ek4YH2PsX3p">
+        <button class="sm" id="btnUndo" title="Ctrl/Cmd + Z" data-page-node-id="PaZV7BcuGMPGwZYTIHd35R">撤销</button>
+        <button class="sm" id="btnRedo" title="Ctrl/Cmd + Shift + Z" data-page-node-id="8HlGyg4dr5r9l0E0rPfA4A">重做</button>
+        <button class="sm" id="btnSync" data-page-node-id="TeWrRl9reEqXEI0ymjeN1P">同步</button>
+        <button class="sm" id="btnSet" data-page-node-id="R0a0SjQjbT9RzNNoNN3sSC">设置</button>
+      </div>
+    </div>
+    <div id="syncbar" class="no-print" style="display:none" data-page-node-id="mQzEyPBG5mB1uVH3rjh0Of"></div>
+  </header>
+
+  <nav class="tabs no-print" data-page-node-id="EdGnSE9cM2Rrq0dvBy1FRX">
+    <button data-view="hall" class="on" data-page-node-id="8JcbanBT5OdeI8DvAw3C7u">宴席桌位</button>
+    <button data-view="cars" data-page-node-id="gaSwvvYq45KVM2YhfEc4vU">婚车安排</button>
+    <button data-view="guests" data-page-node-id="tQBKgYsJvsH6C50GExNbrO">宾客名单</button>
+    <button data-view="export" data-page-node-id="LYALREB2Kx48IWYRzuMvuH">打印 / 导出</button>
+  </nav>
+
+  <main data-page-node-id="j5ITNE4B3b4rcLr2P5bNEa">
+    <!-- 宴席 -->
+    <section id="view-hall" data-page-node-id="UrMhNhDCsUzoSVepwglBtf">
+      <div class="layout" data-page-node-id="M3IPt4I0iwXIr2KtZUUh6H">
+        <div id="floor" data-page-node-id="ARhcutzErWPRc4GIULQAE1"></div>
+        <div class="rail no-print" data-page-node-id="BK7L4bWRs4G3RhhJiGAmYm">
+          <div class="panel" data-page-node-id="lM7ftLvjW9Vmx3lGKM2Km6">
+            <h3 data-page-node-id="fJAnv9De6s9kwK3hiC55ZJ"><button class="ghost sm" id="tabPool" data-page-node-id="fC33RhsSKgoR0N1naAjA0T">宾客池</button><button class="ghost sm" id="tabSeats" data-page-node-id="l8ZjuSSJrcyBCAUNL9xXIu">当前桌</button>
+              <span class="sp" id="railTip" data-page-node-id="n1WB0Iqd1kAAMGpR9Q6uMF"></span></h3>
+            <div class="panel-body" data-page-node-id="voaW4R6GAAlwZoyBKyUlxj">
+              <div id="poolPane" data-page-node-id="QV3P9j6khHMHDG56zK7qIi">
+                <input id="qPool" placeholder="搜索姓名 / 分组…" style="margin-bottom:8px" data-page-node-id="YRpXSRD8Hly5IuVU3g2cOX">
+                <div class="pool-wrap" data-page-node-id="CrjwcoJEP49CapxGBsLL5V"><div class="pool" id="pool" data-drop="pool" data-page-node-id="j9TQjiNVKMdIQb57FgNw7F"></div></div>
+                <div class="hintbox" style="margin-top:8px" data-page-node-id="KLvwTUqzpCMDG4kJXOyCP1">按住名字拖到座位；或先点名字再点空位。</div>
+              </div>
+              <div id="seatPane" style="display:none" data-page-node-id="zThAqHWVMC1WprF4FCRnfk">
+                <div class="row" style="margin-bottom:8px" data-page-node-id="Z13ky3YMgFT1Rdstbekwpf">
+                  <input id="seatTblName" style="flex:1" data-page-node-id="lqKLw7TVsGDcMCkQ8jFwHz">
+                  <button class="sm" id="btnAutoFill" data-page-node-id="FrV4Y8Binry9CLXXe8aN4S">自动填满</button>
+                  <button class="sm" id="btnClearTbl" data-page-node-id="b7fHkJtFCHH1WfOytQBNMX">清空</button>
+                </div>
+                <div class="slots" id="slots" data-page-node-id="CyizrsOkRYlqpYhcpF7rMI"></div>
+                <div class="hintbox" style="margin-top:8px" data-page-node-id="a4BesdSYBJy49L6BdeIps6">
+                  空位上<b data-page-node-id="CL8fVKWeVhf1SFxaFgeFbn">直接点一下就能打字</b>，回车即新建宾客并入座，自动进入宾客名单。<br data-page-node-id="F23ZAJbt1LNOrL0SdGBzKo">
+                  写「张建国,男方亲友」可一步指定分组。同名已存在时直接复用，不重复建人。<br data-page-node-id="x2OajvBJGifeMXRUkNLKqL">
+                  手机端：先点名字、再点空位也可入座；长按名字可拖动。电脑上直接拖。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 婚车 -->
+    <section id="view-cars" style="display:none" data-page-node-id="yvbvEqGYd9jj6GeUPgnexy">
+      <div class="panel" style="margin-bottom:12px" data-page-node-id="6V7T3he4noBxZIlfQjf9s5">
+        <div class="panel-body hintbox" data-page-node-id="H1pP0n4DbA5fPgT0fh5uiY">
+          按车分配乘坐人员。用法同宴席：从宾客池拖名字到座位，或<b data-page-node-id="aP0SQwubqgRA2XMoC22ZTw">在空位上直接点一下打字</b>。主驾一般填司机，不计入宾客统计。
+        </div>
+      </div>
+      <div class="cars" id="cars" data-page-node-id="PAn1nIf8ajICJpYEsT4Feh"></div>
+      <div class="rail no-print" style="position:static;margin-top:16px;max-width:var(--rail)" data-page-node-id="CytyzdGeaqgOT1V0u50uWI">
+        <div class="panel" data-page-node-id="1lEEzkKm3okQHcn5V8aaqE">
+          <h3 data-page-node-id="XtqPq6qyYbfy7DLCErUCWq">宾客池<span class="sp" id="poolTip2" data-page-node-id="dPh93ow7nzGBEeUX2yV33P"></span></h3>
+          <div class="panel-body" data-page-node-id="1ChResABL6whuOBXcNrd9A">
+            <input id="qPool2" placeholder="搜索姓名 / 分组…" style="margin-bottom:8px" data-page-node-id="KCABda42jXKumgXgyuKdec">
+            <div class="pool-wrap" style="max-height:220px" data-page-node-id="Pr3mY0B7wxndXy1sTYzgxM"><div class="pool" id="pool2" data-drop="pool" data-page-node-id="WlcZYiDPXAFx2JfayKLZCh"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 名单 -->
+    <section id="view-guests" style="display:none" data-page-node-id="sOsBX8TaCBJSYQxnQVuq89">
+      <div class="panel" data-page-node-id="L9Q2QwZTMVAl6uRETKQVBi">
+        <h3 data-page-node-id="ZiWFZndVuJVLSNikQ40NE7">宾客名单<span class="sp" id="gCount" data-page-node-id="2qRsHIjcEQwHhLy7g3RQRj"></span>
+          <button class="sm" id="btnImport" style="margin-left:auto" data-page-node-id="S2fGJnYyUTw4lQtQZNaRnF">批量导入</button>
+          <button class="sm" id="btnAddOne" data-page-node-id="7T88E6Zr9DHsB1BykAwCk8">加一位</button>
+        </h3>
+        <div class="panel-body" style="padding:0" data-page-node-id="SijlYDcnlz8MVh3HKBVaXF">
+          <div style="padding:10px 14px" data-page-node-id="SdaWwZ6SqbS9jUcN9sWAH9"><input id="qGuest" placeholder="搜索姓名 / 分组 / 所在桌…" data-page-node-id="8p6mKnZAug3Sm0K2LrxErS"></div>
+          <div style="overflow:auto;max-height:calc(100vh - 300px)" data-page-node-id="o6fVaZGIrxmYGp6qBlOjoD">
+            <table class="grid" data-page-node-id="6wftDRGUBddXV2ESO2VW9W">
+              <thead data-page-node-id="e3ISV7CfIMejqFsd3S0wZt"><tr data-page-node-id="3RP4j3pKJfDXAc1Hx7IYCm"><th style="width:150px" data-page-node-id="3v9B8C6phSVBkKy7Dezm3D">姓名</th><th style="width:110px" data-page-node-id="FrnuLsffG4I5HiKg8ctbYv">分组</th><th data-page-node-id="lpVUv6Iuffa3uS0w6zsa7w">宴席位置</th><th data-page-node-id="7hpQltHpxuElIydbinJHYA">婚车位置</th><th style="width:60px" data-page-node-id="puqiVFmnaCxNITzlCkI4XM"></th></tr></thead>
+              <tbody id="gtb" data-page-node-id="u5duqVdN2Asi5vG0VIzXGt"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 导出 -->
+    <section id="view-export" style="display:none" data-page-node-id="vqIEG32IP25SWBdcHfdV8U">
+      <div class="panel" style="margin-bottom:14px" data-page-node-id="DwjmItGvJ9LuMrnFk3Mu5G">
+        <div class="panel-body row no-print" style="flex-wrap:wrap;gap:8px" data-page-node-id="8ckUhaTVTTgAGOk0IhHp8S">
+          <button class="primary" id="btnPrint" data-page-node-id="ZaOtba1sKFWEsXHZQyl2eI">打印 / 存为 PDF</button>
+          <button id="btnCsv" data-page-node-id="IEdbeJRF9h0S9NWQHYBkPF">导出 CSV</button>
+          <button id="btnJson" data-page-node-id="D0irFhDON0EF1ZPTtgvFuw">备份 JSON</button>
+          <button id="btnRestore" data-page-node-id="5Bv1jp4cpLspE34eAqh1V7">从备份恢复</button>
+          <span class="hintbox" style="margin-left:auto" data-page-node-id="PzEqWgNM3m30dFsAsPazvo">打印时每桌一张卡，可直接贴在宴会厅门口或剪成桌卡。</span>
+        </div>
+      </div>
+      <div class="print-grid" id="printGrid" data-page-node-id="es6I9Ayz6fs6GY3LnIjeCt"></div>
+    </section>
+  </main>
+</div>
+
+<div id="ghost" style="display:none" data-page-node-id="E8s0uePGYalTEfUqgU11JS"></div>
+<div id="mount" data-page-node-id="SpFglmWplKqeLBC5WN88vY"></div>
+
+<script>
+"use strict";
+/* ==================== 数据模型 ==================== */
+var KEY = "wedding-seating-v1";
+var TAGS = [
+  {n:"男方亲友", c:"#2D6FB8", b:"#E8F1FB"},
+  {n:"女方亲友", c:"#C2185B", b:"#FCE9F1"},
+  {n:"同事",     c:"#2E7D5B", b:"#E7F4ED"},
+  {n:"同学",     c:"#B26A00", b:"#FDF1DC"},
+  {n:"其他",     c:"#6B665E", b:"#F1EFE8"}
+];
+function tagOf(n){ for(var i=0;i<TAGS.length;i++) if(TAGS[i].n===n) return TAGS[i]; return TAGS[TAGS.length-1]; }
+function uid(p){ return p + Math.random().toString(36).slice(2,8); }
+
+var CAR_SEATS = ["主驾","副驾","后排左","后排右"];   // 后排不设中间座
+var DEF_ROWS  = 5;                                   // 平面图每列桌数（竖排）
+
+function defState(){
+  var S = {
+    v: 2,
+    meta:{ groom:"", bride:"", date:"", hall:"", seats:10, rows:DEF_ROWS },
+    zones:[],
+    cars:[],
+    guests:[],
+    ui:{}
+  };
+  S.zones = [
+    mkZone("A 区", 10, 10),
+    mkZone("B 区", 10, 10, "主桌"),   // 主桌 = B 区第 1 桌（B1），紧邻 T 台
+    mkZone("C 区", 10, 10),
+    mkZone("D 区", 10, 10)
+  ];
+  S.cars = [];
+  for(var i=0;i<6;i++){
+    S.cars.push({ id:uid("c"), name: (i===0?"主车":(i+1)+"号车"), driver:"",
+      seats: CAR_SEATS.map(function(l){ return {label:l, g:null}; }) });
+  }
+  return S;
+}
+function mkZone(name, n, seats, first){
+  var z = { id:uid("z"), name:name, tables:[] };
+  for(var i=0;i<n;i++){
+    z.tables.push({ id:uid("t"), name: (i===0&&first) ? (name.replace(/\s*区$/,"")+"-1 · 主桌") : (name.replace(/\s*区$/,"")+"-"+(i+1)),
+                    main: !!(i===0&&first), seats: new Array(seats).fill(null) });
+  }
+  return z;
+}
+/* 只重建分区 / 婚车，宾客名单原样保留（已入座的人会自动落回宾客池） */
+function resetLayout(){
+  var d = defState();
+  S.zones = d.zones; S.cars = d.cars; S.meta.rows = d.meta.rows;
+  selTable = null; selGuest = null;
+  save(); render();
+}
+
+var S = null, undoStack = [], redoStack = [];
+var selGuest = null, selTable = null, view = "hall", railTab = "pool";
+
+/* ==================== 存储 / 撤销 ==================== */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ alert("本地保存失败：存储空间可能已满。\n"+e.message); }
+  syncTouch();
+}
+function snapshot(){
+  undoStack.push(clone(S));
+  if(undoStack.length>60) undoStack.shift();
+  redoStack.length = 0;
+}
+function undo(){
+  if(!undoStack.length) return;
+  redoStack.push(clone(S)); S = undoStack.pop(); afterOp();
+}
+function redo(){
+  if(!redoStack.length) return;
+  undoStack.push(clone(S)); S = redoStack.pop(); afterOp();
+}
+function afterOp(){ selGuest = null; save(); render(); }
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){ var o = JSON.parse(raw); if(o && o.zones) return migrate(o); }
+  }catch(e){}
+  return defState();
+}
+/* 版本迁移：新布局 = A~D 区各 10 桌（主桌并入 A 区第 1 桌）+ 婚车 4 座 */
+function isOldDefaultLayout(zones){
+  if(!zones || !zones.length) return false;
+  // 旧版第 1 区固定叫「主桌区」且只有 1 桌；A 区 8 桌。靠区名结构识别，不依赖各区是否填满。
+  if(zones[0].name !== "主桌区" || (zones[0].tables||[]).length !== 1) return false;
+  var a = zones.filter(function(z){ return z.name === "A 区"; })[0];
+  if(!a || (a.tables||[]).length !== 8) return false;
+  var names = zones.map(function(z){ return z.name; }).join(",");
+  return names === "主桌区,A 区,B 区,C 区" || names === "主桌区,A 区,B 区,C 区,D 区";
+}
+function migrate(o){
+  if(!o.meta) o.meta = {};
+  if(!o.meta.rows) o.meta.rows = DEF_ROWS;
+  if(!o.meta.seats) o.meta.seats = 10;
+  // 婚车：去掉「后排中」（仅在该座位为空时删，避免静默丢人）
+  (o.cars||[]).forEach(function(c){
+    (c.seats||[]).forEach(function(s){ if(s.g===undefined) s.g = null; });
+    if(c.seats && c.seats.length > CAR_SEATS.length){
+      var mid = c.seats.filter(function(s){ return s.label==="后排中"; });
+      if(mid.length===1 && !mid[0].g) c.seats = c.seats.filter(function(s){ return s.label!=="后排中"; });
+    }
+  });
+  // 旧默认模板（主桌区 + 每区 8 桌）直接升级为新默认布局：
+  // A~D 区各 10 桌，主桌并入 A 区第 1 桌。宾客名单原样保留，旧座位引用失效→回池子。
+  if(isOldDefaultLayout(o.zones)){
+    var d = defState();
+    o.zones = d.zones; o.cars = d.cars;
+  }
+  return o;
+}
+
+/* ==================== 查询工具 ==================== */
+function allTables(){ var a=[]; S.zones.forEach(function(z){ z.tables.forEach(function(t){ a.push({t:t,z:z}); }); }); return a; }
+function findTable(id){ var a=allTables(); for(var i=0;i<a.length;i++) if(a[i].t.id===id) return a[i]; return null; }
+function findCar(id){ for(var i=0;i<S.cars.length;i++) if(S.cars[i].id===id) return S.cars[i]; return null; }
+function guestById(id){ for(var i=0;i<S.guests.length;i++) if(S.guests[i].id===id) return S.guests[i]; return null; }
+
+function seatOf(gid){        // 返回该宾客所在的宴席座位
+  var a = allTables();
+  for(var i=0;i<a.length;i++){
+    var k = a[i].t.seats.indexOf(gid);
+    if(k>=0) return {kind:"t", t:a[i].t, z:a[i].z, i:k};
+  }
+  return null;
+}
+function carSeatOf(gid){
+  for(var i=0;i<S.cars.length;i++){
+    for(var j=0;j<S.cars[i].seats.length;j++) if(S.cars[i].seats[j].g===gid) return {kind:"c", c:S.cars[i], i:j};
+  }
+  return null;
+}
+function posText(gid){
+  var a = seatOf(gid), b = carSeatOf(gid), out = [];
+  out.push(a ? (a.z.name + " / " + a.t.name + " 第" + (a.i+1) + "座") : "—");
+  out.push(b ? (b.c.name + " " + b.c.seats[b.i].label) : "—");
+  return out;
+}
+function stats(){
+  var seated = 0, free = 0;
+  allTables().forEach(function(x){
+    x.t.seats.forEach(function(g){ if(g) seated++; else free++; });
+  });
+  return { total:S.guests.length, seated:seated, left:S.guests.length - seated, free:free };
+}
+
+/* ==================== 变更操作 ==================== */
+function doAssign(kind, id, idx, gid){   // 不记快照，供「新建宾客 + 入座」这类组合操作复用
+  // 一人一座：先把他从原位置摘掉
+  var old = seatOf(gid); if(old) old.t.seats[old.i] = null;
+  var oc = carSeatOf(gid); if(oc) oc.c.seats[oc.i].g = null;
+  if(kind==="t"){
+    var t = findTable(id).t, occ = t.seats[idx];
+    t.seats[idx] = gid;
+    if(occ){                                   // 被顶掉的人回池子
+      var s2 = seatOf(occ); if(s2) s2.t.seats[s2.i] = null;
+      var s4 = carSeatOf(occ); if(s4) s4.c.seats[s4.i].g = null;
+    }
+  }else{
+    var c = findCar(id), occ2 = c.seats[idx].g;
+    c.seats[idx].g = gid;
+    if(occ2){
+      var s3 = seatOf(occ2); if(s3) s3.t.seats[s3.i] = null;
+      var s5 = carSeatOf(occ2); if(s5) s5.c.seats[s5.i].g = null;
+    }
+  }
+}
+function assign(kind, id, idx, gid){
+  snapshot();
+  doAssign(kind, id, idx, gid);
+  save(); render();
+}
+function unassign(kind, id, idx){
+  snapshot();
+  if(kind==="t"){ var t=findTable(id); if(t.t.seats[idx]) t.t.seats[idx]=null; }
+  else { var c=findCar(id); c.seats[idx].g = null; }
+  save(); render();
+}
+function swapSeats(a, b){    // a,b = {kind,id,i}
+  snapshot();
+  function get(x){ return x.kind==="t" ? findTable(x.id).t.seats[x.i] : findCar(x.id).seats[x.i].g; }
+  function set(x,v){ if(x.kind==="t") findTable(x.id).t.seats[x.i]=v; else findCar(x.id).seats[x.i].g=v; }
+  var va = get(a), vb = get(b);
+  set(a, vb); set(b, va);
+  save(); render();
+}
+function addGuest(name, tag){
+  name = (name||"").trim(); if(!name) return null;
+  snapshot();
+  var g = { id:uid("g"), name:name, tag:tag||"其他" };
+  S.guests.push(g); save(); render(); return g;
+}
+function delGuest(id){
+  snapshot();
+  var s = seatOf(id); if(s) s.t.seats[s.i] = null;
+  var c = carSeatOf(id); if(c) c.c.seats[c.i].g = null;
+  S.guests = S.guests.filter(function(g){ return g.id!==id; });
+  save(); render();
+}
+function bulkImport(text){
+  var lines = text.split(/\r?\n/), added = 0;
+  snapshot();
+  lines.forEach(function(ln){
+    ln = ln.replace(/\t/g,",").trim(); if(!ln) return;
+    var p = ln.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean);
+    if(!p.length) return;
+    var name = p[0], tag = p[1] || "其他";
+    var hit = TAGS.filter(function(t){ return t.n===tag; }).length;
+    S.guests.push({ id:uid("g"), name:name, tag: hit?tag:"其他" });
+    added++;
+  });
+  save(); render();
+  alert("已导入 " + added + " 位宾客。");
+}
+function resizeSeats(n){
+  n = Math.max(1, Math.min(30, parseInt(n,10)||10));
+  snapshot();
+  S.meta.seats = n;
+  allTables().forEach(function(x){
+    var s = x.t.seats.slice(0, n);
+    while(s.length < n) s.push(null);
+    x.t.seats = s;
+  });
+  save(); render();
+}
+function clearTable(id){
+  snapshot();
+  var t = findTable(id); if(!t) return;
+  t.t.seats = t.t.seats.map(function(){ return null; });
+  save(); render();
+}
+function autoFill(id){
+  var t = findTable(id); if(!t) return;
+  var used = {};
+  allTables().forEach(function(x){ x.t.seats.forEach(function(g){ if(g) used[g]=1; }); });
+  var pool = S.guests.filter(function(g){ return !used[g.id]; });
+  if(!pool.length){ alert("宾客池已空，没有可自动填入的人。"); return; }
+  snapshot();
+  for(var i=0;i<t.t.seats.length && pool.length;i++){
+    if(!t.t.seats[i]) t.t.seats[i] = pool.shift().id;
+  }
+  save(); render();
+}
+
+/* ==================== 空位直接输入姓名 ==================== */
+/* editing = {kind:'t'|'c', id, i}；在空座位上直接打字，回车即新建宾客并入座，
+   新宾客自动进入「宾客名单」。支持「姓名,分组」写法，如：张建国,男方亲友 */
+var editing = null;
+
+function editPH(){
+  return "输入姓名" + (S.ui.lastTag ? "（默认 " + S.ui.lastTag + "）" : "") + "，回车确认";
+}
+function startEdit(kind, id, i){
+  editing = { kind:kind, id:id, i:i };
+  render();
+}
+function cancelEdit(){
+  if(!editing) return;
+  editing = null; render();
+}
+function commitEdit(value, deferRender){
+  if(!editing) return;
+  var ed = editing;
+  editing = null;                                  // 先清空，避免 focusout 重入
+  var raw = String(value == null ? "" : value).replace(/\t/g, ",").trim();
+  if(!raw){ if(!deferRender) render(); return; }
+  var p = raw.split(/[,，、]/).map(function(s){ return s.trim(); }).filter(Boolean);
+  var name = p[0];
+  var tag = (p[1] && TAGS.some(function(t){ return t.n === p[1]; })) ? p[1] : (S.ui.lastTag || "其他");
+
+  var exist = null;
+  for(var k = 0; k < S.guests.length; k++){ if(S.guests[k].name === name){ exist = S.guests[k]; break; } }
+
+  snapshot();                                      // 新建 + 入座算一步，一次撤销即可回到空白
+  var gid;
+  if(exist){
+    gid = exist.id;                                // 同名已存在：直接复用，不重复建人
+  }else{
+    var g = { id:uid("g"), name:name, tag:tag };
+    S.guests.push(g);
+    gid = g.id;
+  }
+  S.ui.lastTag = tag;
+  selGuest = null;
+  doAssign(ed.kind, ed.id, ed.i, gid);
+  save();
+  if(deferRender) setTimeout(render, 0); else render();
+}
+function isEditing(kind, id, i){
+  return !!editing && editing.kind === kind && editing.id === id && editing.i === i;
+}
+function editBoxHTML(){
+  return '<div class="slot editing"><input class="slot-input" autocomplete="off" spellcheck="false" placeholder="' + esc(editPH()) + '"></div>';
+}
+
+/* ==================== 渲染 ==================== */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function ringSVG(t, n, highlight){
+  var r = 30, R = 27, cx = 37, cy = 37, out = "";
+  for(var i=0;i<n;i++){
+    var a = (-90 + i*(360/n)) * Math.PI/180;
+    var x = cx + Math.cos(a)*R, y = cy + Math.sin(a)*R;
+    var on = !!t.seats[i];
+    out += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(on?3.4:2.8)+'" fill="'+(on?"#C0392B":"none")+'" stroke="'+(on?"none":"#C9C3B7")+'" stroke-width="1"/>';
+  }
+  var used = t.seats.filter(Boolean).length;
+  return '<svg class="ring" viewBox="0 0 74 74" aria-hidden="true">'
+    + '<circle cx="37" cy="37" r="24" fill="none" stroke="#EDE8DF" stroke-width="1"/>'
+    + out
+    + '<text x="37" y="34" text-anchor="middle" font-size="15" font-weight="600" fill="#2C2A26">'+used+'</text>'
+    + '<text x="37" y="47" text-anchor="middle" font-size="10" fill="#9C968B">/'+n+'</text>'
+    + '</svg>';
+}
+
+function renderFloor(){
+  var q = (document.getElementById("qPool").value||"").trim();
+  var box = document.getElementById("floor");
+  var cols = S.zones.slice().reverse();            // 显示顺序：D C B A（左→右）
+  var tstageAfter = Math.floor(cols.length/2) - 1; // 4 区 → 插在第 2 列后（C 与 B 之间）
+  var h = '<div class="floor-grid">';
+  cols.forEach(function(z, ci){
+    var seated = 0, cap = 0;
+    z.tables.forEach(function(t){ cap += t.seats.length; seated += t.seats.filter(Boolean).length; });
+    h += '<div class="fcol"><div class="col-hd"><h4>'+esc(z.name)+'</h4>'
+      +  '<span class="cnt">'+z.tables.length+' 桌 · '+seated+'/'+cap+' 人</span>'
+      +  '<span class="ops no-print"><button class="ghost sm" data-zonedel="'+z.id+'">删除</button></span></div>'
+      +  '<div class="col-tables">';
+    z.tables.forEach(function(t){
+      var full = t.seats.every(Boolean);
+      h += '<div class="tbl'+(selTable===t.id?" sel":"")+(full?" full":"")+(t.main?" main":"")+'" data-tbl="'+t.id+'">'
+        +  ringSVG(t, t.seats.length)
+        +  '<div class="tname">'+esc(t.name)+'</div>'
+        +  '</div>';
+    });
+    h += '</div></div>';
+    if(ci === tstageAfter) h += '<div class="tstage"><span>T 台</span></div>';
+  });
+  h += '<div class="floor-add no-print"><button class="sm" id="btnAddZone">+ 区</button></div>';
+  h += '</div>';
+  box.innerHTML = h;
+}
+
+function poolList(){
+  var used = {};
+  allTables().forEach(function(x){ x.t.seats.forEach(function(g){ if(g) used[g]=1; }); });
+  return S.guests.filter(function(g){ return !used[g.id]; });
+}
+function renderPool(targetId, qId){
+  var q = (document.getElementById(qId).value||"").trim();
+  var box = document.getElementById(targetId);
+  var list = poolList();
+  if(q) list = list.filter(function(g){ return g.name.indexOf(q)>=0 || (g.tag||"").indexOf(q)>=0; });
+  if(!list.length){
+    box.className = "pool empty-hint";
+    box.innerHTML = S.guests.length ? "没有待安排的宾客" : "还没有宾客，去「宾客名单」批量导入";
+    return;
+  }
+  box.className = "pool";
+  box.innerHTML = list.map(function(g){
+    var tg = tagOf(g.tag);
+    var dim = q && g.name.indexOf(q)<0 && (g.tag||"").indexOf(q)<0;
+    return '<span class="chip'+(selGuest===g.id?" sel":"")+(dim?" dim":"")+'" data-drag="pool" data-gid="'+g.id+'">'
+      + '<i class="dot" style="background:'+tg.c+'"></i><span class="nm">'+esc(g.name)+'</span></span>';
+  }).join("");
+}
+
+function renderSeatPane(){
+  var pane = document.getElementById("seatPane"), pool = document.getElementById("poolPane");
+  if(railTab==="seats" && selTable){
+    pool.style.display="none"; pane.style.display="";
+    var t = findTable(selTable); if(!t){ railTab="pool"; return renderSeatPane(); }
+    document.getElementById("seatTblName").value = t.t.name;
+    var h = "";
+    t.t.seats.forEach(function(gid, i){
+      if(isEditing("t", t.t.id, i)){ h += editBoxHTML(); return; }
+      var g = gid ? guestById(gid) : null;
+      var cls = "slot" + (g?" filled":"") + (!g && selGuest ? " hint":"");
+      var txt = g ? esc(g.name) : (selGuest ? "安排 " + esc((guestById(selGuest)||{}).name||"") : "空位");
+      var dot = g ? '<i class="dot" style="width:7px;height:7px;border-radius:50%;background:'+tagOf(g.tag).c+';flex:none"></i>' : "";
+      h += '<div class="'+cls+'" data-drop="seat" data-kind="t" data-id="'+t.t.id+'" data-i="'+i+'"'+(g?' data-drag="seat" data-gid="'+g.id+'"':"")+'>'
+        +  '<span class="idx">'+(i+1)+'</span>' + dot + '<span class="nm">'+txt+'</span>'
+        +  (g?'<span class="x" data-del="'+g.id+'">&times;</span>':"") + '</div>';
+    });
+    document.getElementById("slots").innerHTML = h;
+    document.getElementById("railTip").textContent = t.z.name + " / " + t.t.name;
+  }else{
+    pane.style.display="none"; pool.style.display="";
+    document.getElementById("railTip").textContent = poolList().length + " 人待安排";
+  }
+}
+
+function renderCars(){
+  document.getElementById("cars").innerHTML = S.cars.map(function(c){
+    var h = '<div class="car"><div class="car-hd"><span class="cname">'+esc(c.name)+'</span>'
+      + '<input class="cdrv" data-cdrv="'+c.id+'" value="'+esc(c.driver)+'" placeholder="司机 / 备注">'
+      + '<button class="ghost sm no-print" data-cardel="'+c.id+'">删除</button></div>';
+    c.seats.forEach(function(s, i){
+      if(isEditing("c", c.id, i)){ h += editBoxHTML(); return; }
+      var g = s.g ? guestById(s.g) : null;
+      var cls = "slot" + (g?" filled":"") + (!g && selGuest ? " hint":"");
+      var txt = g ? esc(g.name) : (selGuest ? "安排 " + esc((guestById(selGuest)||{}).name||"") : "空位");
+      var dot = g ? '<i class="dot" style="width:7px;height:7px;border-radius:50%;background:'+tagOf(g.tag).c+';flex:none"></i>' : "";
+      h += '<div class="'+cls+'" data-drop="seat" data-kind="c" data-id="'+c.id+'" data-i="'+i+'"'+(g?' data-drag="seat" data-gid="'+g.id+'"':"")+'>'
+        +  '<span class="idx" style="min-width:44px">'+esc(s.label)+'</span>' + dot
+        +  '<span class="nm">'+txt+'</span>' + (g?'<span class="x" data-del="'+g.id+'">&times;</span>':"") + '</div>';
+    });
+    return h + '</div>';
+  }).join("") + '<div class="no-print"><button class="sm" id="btnAddCar">+ 增加一辆车</button></div>';
+}
+
+function renderGuests(){
+  var q = (document.getElementById("qGuest").value||"").trim();
+  var list = S.guests;
+  if(q){
+    list = list.filter(function(g){
+      var p = posText(g.id).join(" ");
+      return (g.name+" "+(g.tag||"")+" "+p).indexOf(q) >= 0;
+    });
+  }
+  document.getElementById("gCount").textContent = "共 " + S.guests.length + " 人";
+  document.getElementById("gtb").innerHTML = list.length ? list.map(function(g){
+    var p = posText(g.id), tg = tagOf(g.tag);
+    return '<tr><td>'+esc(g.name)+'</td>'
+      + '<td><span class="tagpill" style="background:'+tg.b+';color:'+tg.c+'">'+esc(g.tag)+'</span></td>'
+      + '<td>'+esc(p[0])+'</td><td>'+esc(p[1])+'</td>'
+      + '<td><button class="ghost sm" data-gdel="'+g.id+'">删除</button></td></tr>';
+  }).join("") : '<tr><td colspan="5" class="empty">没有匹配的宾客</td></tr>';
+}
+
+function renderExport(){
+  var h = "";
+  S.zones.forEach(function(z){
+    z.tables.forEach(function(t){
+      var names = t.seats.map(function(g,i){ var x = g?guestById(g):null; return x ? '<li>'+esc(x.name)+'</li>' : '<li class="empty">'+(i+1)+'. （空）</li>'; }).join("");
+      h += '<div class="pcard"><h5>'+esc(z.name)+' · '+esc(t.name)+'</h5>'
+        +  '<div class="meta">'+t.seats.filter(Boolean).length+' / '+t.seats.length+' 人</div>'
+        +  '<ol>'+names+'</ol></div>';
+    });
+  });
+  var carH = S.cars.map(function(c){
+    var li = c.seats.map(function(s){ var g = s.g?guestById(s.g):null; return '<li>'+esc(s.label)+'：'+(g?esc(g.name):"（空）")+'</li>'; }).join("");
+    return '<div class="pcard"><h5>'+esc(c.name)+'</h5><div class="meta">'+esc(c.driver||"未填司机")+'</div><ul style="margin:0;padding-left:18px">'+li+'</ul></div>';
+  }).join("");
+  document.getElementById("printGrid").innerHTML = h + carH;
+}
+
+function renderStats(){
+  var s = stats();
+  document.getElementById("stGuest").textContent = s.total;
+  document.getElementById("stSeated").textContent = s.seated;
+  document.getElementById("stLeft").textContent = s.left;
+  document.getElementById("stFree").textContent = s.free;
+  var m = S.meta;
+  document.getElementById("brandSub").textContent =
+    [m.groom && m.bride ? m.groom + " & " + m.bride : (m.groom || m.bride || "未命名"),
+     m.date, m.hall].filter(Boolean).join(" · ");
+  document.getElementById("poolTip2").textContent = poolList().length + " 人待安排";
+}
+
+function render(){
+  renderStats();
+  if(view==="hall"){ renderFloor(); renderPool("pool","qPool"); renderSeatPane(); }
+  else if(view==="cars"){ renderCars(); renderPool("pool2","qPool2"); }
+  else if(view==="guests"){ renderGuests(); }
+  else if(view==="export"){ renderExport(); }
+  var u = document.getElementById("btnUndo"), r = document.getElementById("btnRedo");
+  u.disabled = !undoStack.length; r.disabled = !redoStack.length;
+  u.style.opacity = undoStack.length ? 1 : .45;
+  r.style.opacity = redoStack.length ? 1 : .45;
+  focusEditor();
+}
+function focusEditor(){
+  var el = document.querySelector(".slot-input");
+  if(el && document.activeElement !== el) el.focus();
+}
+
+/* ==================== 视图切换 ==================== */
+document.querySelectorAll("nav.tabs button").forEach(function(b){
+  b.onclick = function(){
+    document.querySelectorAll("nav.tabs button").forEach(function(x){ x.className=""; });
+    b.className = "on";
+    view = b.dataset.view;
+    ["hall","cars","guests","export"].forEach(function(v){
+      document.getElementById("view-"+v).style.display = (v===view) ? "" : "none";
+    });
+    render();
+  };
+});
+document.getElementById("tabPool").onclick = function(){ railTab="pool"; render(); };
+document.getElementById("tabSeats").onclick = function(){ if(!selTable){ alert("先在左边点一张桌子"); return; } railTab="seats"; render(); };
+document.getElementById("qPool").oninput = function(){ renderPool("pool","qPool"); };
+document.getElementById("qPool2").oninput = function(){ renderPool("pool2","qPool2"); };
+document.getElementById("qGuest").oninput = renderGuests;
+document.getElementById("btnUndo").onclick = undo;
+document.getElementById("btnRedo").onclick = redo;
+document.getElementById("btnClearTbl").onclick = function(){ if(selTable) clearTable(selTable); };
+document.getElementById("btnAutoFill").onclick = function(){ if(selTable) autoFill(selTable); };
+document.getElementById("seatTblName").onchange = function(){
+  var t = findTable(selTable); if(!t) return;
+  snapshot(); t.t.name = this.value.trim() || t.t.name; save(); render();
+};
+document.addEventListener("keydown", function(e){
+  // 座位内联输入框：回车确认、Esc 取消
+  var inp = e.target && e.target.closest ? e.target.closest(".slot-input") : null;
+  if(inp){
+    if(e.key === "Enter"){ e.preventDefault(); commitEdit(inp.value); }
+    else if(e.key === "Escape"){ e.preventDefault(); cancelEdit(); }
+    return;
+  }
+  var typing = /INPUT|TEXTAREA/.test((e.target && e.target.tagName) || "");
+  if(!typing && (e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="z"){ e.preventDefault(); e.shiftKey?redo():undo(); }
+  if(e.key==="Escape" && !typing){ if(editing){ cancelEdit(); } else { selGuest=null; render(); } }
+});
+// 点到别处：有内容就确认（延后重绘，保证这一次点击还能落到目标座位上），没内容就取消
+document.addEventListener("focusout", function(e){
+  var inp = e.target && e.target.closest ? e.target.closest(".slot-input") : null;
+  if(!inp) return;
+  var v = inp.value;
+  if(String(v).trim()) commitEdit(v, true);
+  else { editing = null; setTimeout(render, 0); }
+});
+
+/* ==================== 点击 / 拖拽 ==================== */
+var drag = null, lpTimer = null;
+var ghost = document.getElementById("ghost");
+
+function showGhost(){
+  if(!drag || drag.moved) return;
+  drag.moved = true;
+  ghost.textContent = drag.name;
+  ghost.style.display = "block";
+}
+function endDrag(){
+  clearTimeout(lpTimer);
+  drag = null;
+  ghost.style.display = "none";
+  document.querySelectorAll(".slot.hover").forEach(function(x){ x.classList.remove("hover"); });
+}
+function onDown(e){
+  if(e.button !== undefined && e.button !== 0) return;
+  var chip = e.target.closest("[data-drag]");
+  if(!chip) return;
+  var g = guestById(chip.dataset.gid); if(!g) return;
+  var from = null;
+  if(chip.dataset.drag === "seat"){
+    var seatEl = chip.closest("[data-drop]");
+    from = { kind: seatEl.dataset.kind, id: seatEl.dataset.id, i: parseInt(seatEl.dataset.i,10) };
+  }
+  var touch = (e.pointerType === "touch");
+  drag = { gid:g.id, name:g.name, from:from, x0:e.clientX, y0:e.clientY, moved:false, touch:touch };
+  if(touch){
+    // 触摸：长按 300ms 或横向滑动 10px 才算拖拽，纵向滑动让页面正常滚动
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(function(){ if(drag && !drag.moved){ showGhost(); } }, 300);
+  }else{
+    chip.setPointerCapture && chip.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+}
+function onMove(e){
+  if(!drag) return;
+  var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if(!drag.moved){
+    if(drag.touch){
+      if(Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)){ endDrag(); return; }   // 判定为滚动
+      if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)){ clearTimeout(lpTimer); showGhost(); }
+      else return;
+    }else if(Math.abs(dx) + Math.abs(dy) < 6){ return; }
+    else { showGhost(); }
+  }
+  ghost.style.left = (e.clientX + window.scrollX) + "px";
+  ghost.style.top  = (e.clientY + window.scrollY - 16) + "px";
+  var el = document.elementFromPoint(e.clientX, e.clientY);
+  document.querySelectorAll(".slot.hover").forEach(function(x){ x.classList.remove("hover"); });
+  var drop = el && el.closest("[data-drop='seat']");
+  if(drop) drop.classList.add("hover");
+}
+function onUp(e){
+  if(!drag) return;
+  var d = drag;
+  var el = (e.clientX === undefined) ? null : document.elementFromPoint(e.clientX, e.clientY);
+  endDrag();
+  if(!d.moved){                                   // 没动过 = 单击选中
+    selGuest = (selGuest === d.gid) ? null : d.gid;
+    render(); return;
+  }
+  var drop = el && el.closest("[data-drop='seat']");
+  if(drop){
+    var to = { kind: drop.dataset.kind, id: drop.dataset.id, i: parseInt(drop.dataset.i,10) };
+    if(!d.from){ assign(to.kind, to.id, to.i, d.gid); }
+    else if(!(d.from.kind===to.kind && d.from.id===to.id && d.from.i===to.i)){ swapSeats(d.from, to); }
+    else { render(); }
+    return;
+  }
+  if(el && el.closest("[data-drop='pool']") && d.from){ unassign(d.from.kind, d.from.id, d.from.i); return; }
+  render();
+}
+document.addEventListener("pointerdown", onDown);
+document.addEventListener("pointermove", onMove);
+document.addEventListener("pointerup", onUp);
+document.addEventListener("pointercancel", endDrag);
+// 触摸拖拽时阻止页面跟着滚
+document.addEventListener("touchmove", function(e){
+  if(drag && drag.moved && e.cancelable) e.preventDefault();
+}, { passive:false });
+
+/* 座位点击：空位 = 直接输入姓名；空位 + 已选宾客 = 入座；已占 = 选中该人 */
+document.addEventListener("click", function(e){
+  if(e.target.closest && e.target.closest(".slot-input")) return;   // 正在输入，交给输入框
+  var del = e.target.closest("[data-del]");
+  if(del){ var dg = del.dataset.del; var s = seatOf(dg) || carSeatOf(dg);
+           if(s) unassign(s.kind==="t"?"t":"c", s.kind==="t"?s.t.id:s.c.id, s.i); return; }
+  var tbl = e.target.closest("[data-tbl]");
+  if(tbl){ selTable = tbl.dataset.tbl; railTab = "seats"; render(); return; }
+  var slot = e.target.closest("[data-drop='seat']");
+  if(slot && !drag){
+    var kind = slot.dataset.kind, id = slot.dataset.id, i = parseInt(slot.dataset.i,10);
+    var cur = kind==="t" ? findTable(id).t.seats[i] : findCar(id).seats[i].g;
+    if(!cur && selGuest){ assign(kind, id, i, selGuest); }
+    else if(!cur){ startEdit(kind, id, i); }                        // 空位直接打字建人
+    else { selGuest = (selGuest===cur) ? null : cur; render(); }
+    return;
+  }
+  var gdel = e.target.closest("[data-gdel]"); if(gdel){ delGuest(gdel.dataset.gdel); return; }
+  var zd = e.target.closest("[data-zonedel]");
+  if(zd){ if(confirm("删除这个区？区内的桌子和已排的宾客都会移除。")){ snapshot();
+          S.zones = S.zones.filter(function(z){ return z.id!==zd.dataset.zonedel; }); save(); render(); } return; }
+  var cd = e.target.closest("[data-cardel]");
+  if(cd){ if(confirm("删除这辆车？")){ snapshot();
+          S.cars = S.cars.filter(function(c){ return c.id!==cd.dataset.cardel; }); save(); render(); } return; }
+  if(e.target.id==="btnAddZone"){ var nm = prompt("新区名称（如：D 区）","D 区"); if(nm){ snapshot(); S.zones.push(mkZone(nm, 6, S.meta.seats)); save(); render(); } return; }
+  if(e.target.id==="btnAddCar"){
+    snapshot();
+    S.cars.push({ id:uid("c"), name:(S.cars.length+1)+"号车", driver:"",
+      seats: CAR_SEATS.map(function(l){ return {label:l,g:null}; }) });
+    save(); render(); return;
+  }
+});
+document.addEventListener("input", function(e){
+  if(e.target.dataset && e.target.dataset.cdrv){
+    var c = findCar(e.target.dataset.cdrv); if(c){ c.driver = e.target.value; save(); }
+  }
+});
+
+/* ==================== 弹窗 ==================== */
+function modal(title, bodyHTML, footHTML){
+  var m = document.createElement("div");
+  m.className = "mask";
+  m.innerHTML = '<div class="modal"><h3>'+esc(title)+'</h3><div class="mb">'+bodyHTML+'</div>'
+    + (footHTML ? '<div class="mf">'+footHTML+'</div>' : '') + '</div>';
+  m.addEventListener("click", function(e){ if(e.target===m) m.remove(); });
+  document.getElementById("mount").appendChild(m);
+  return m;
+}
+function closeModal(el){ var m = el.closest(".mask"); if(m) m.remove(); }
+
+document.getElementById("btnSet").onclick = function(){
+  var zr = S.zones.map(function(z){
+    return '<div class="zonerow"><input data-zname="'+z.id+'" value="'+esc(z.name)+'">'
+      + '<button class="sm" data-zminus="'+z.id+'">-</button><span style="width:46px;text-align:center">'+z.tables.length+' 桌</span>'
+      + '<button class="sm" data-zplus="'+z.id+'">+</button></div>';
+  }).join("");
+  var m = modal("设置",
+      '<div class="fld"><span>婚礼信息</span>'
+    + '<div class="row"><label>新郎</label><input id="mGroom" value="'+esc(S.meta.groom)+'"></div>'
+    + '<div class="row"><label>新娘</label><input id="mBride" value="'+esc(S.meta.bride)+'"></div>'
+    + '<div class="row"><label>日期</label><input id="mDate" value="'+esc(S.meta.date)+'" placeholder="2026-10-06"></div>'
+    + '<div class="row"><label>宴会厅</label><input id="mHall" value="'+esc(S.meta.hall)+'" placeholder="三楼宴会厅"></div></div>'
+    + '<div class="sep"></div>'
+    + '<div class="fld"><span>每桌人数（改动会同步应用到所有桌，超出的人会被移回宾客池）</span>'
+    + '<div class="row"><label>座位数</label><input id="mSeats" type="number" min="1" max="30" value="'+S.meta.seats+'"></div></div>'
+    + '<div class="sep"></div>'
+    + '<div class="fld"><span>平面图排列（竖排：先从上往下，排满一列再往右开新列）</span>'
+    + '<div class="row"><label>每列桌数</label><input id="mRows" type="number" min="1" max="20" value="'+(S.meta.rows||DEF_ROWS)+'"></div></div>'
+    + '<div class="sep"></div>'
+    + '<div class="fld"><span>分区与桌数</span><div class="zonelist">'+zr+'</div></div>'
+    + '<div class="sep"></div>'
+    + '<div class="fld"><span>数据</span>'
+    + '<div class="row" style="gap:8px"><button class="sm" id="mExport">导出备份 JSON</button>'
+    + '<button class="sm" id="mImport">从备份恢复</button>'
+    + '<button class="sm" id="mResetLayout">重置布局</button><button class="sm danger" id="mReset">清空重来</button></div></div>',
+      '<span class="lf">改动即时生效</span><button class="primary" data-close>完成</button>');
+
+  m.querySelector("[data-close]").onclick = function(){
+    snapshot();
+    S.meta.groom = m.querySelector("#mGroom").value.trim();
+    S.meta.bride = m.querySelector("#mBride").value.trim();
+    S.meta.date  = m.querySelector("#mDate").value.trim();
+    S.meta.hall  = m.querySelector("#mHall").value.trim();
+    var nr = parseInt(m.querySelector("#mRows").value,10);
+    if(nr && nr!==S.meta.rows){ S.meta.rows = Math.min(20, Math.max(1, nr)); }
+    var ns = parseInt(m.querySelector("#mSeats").value,10);
+    if(ns && ns!==S.meta.seats){ closeModal(this); resizeSeats(ns); return; }
+    save(); render(); closeModal(this);
+  };
+  m.querySelectorAll("[data-zname]").forEach(function(inp){
+    inp.onchange = function(){ var z = S.zones.filter(function(x){return x.id===inp.dataset.zname;})[0];
+      if(z){ snapshot(); z.name = inp.value.trim()||z.name; save(); render(); } };
+  });
+  m.querySelectorAll("[data-zplus]").forEach(function(b){
+    b.onclick = function(){ var z = S.zones.filter(function(x){return x.id===b.dataset.zplus;})[0];
+      snapshot(); z.tables.push({id:uid("t"), name:z.name.replace(/\s*区$/,"")+"-"+(z.tables.length+1), seats:new Array(S.meta.seats).fill(null)});
+      save(); render(); closeModal(b); setTimeout(function(){ document.getElementById("btnSet").click(); },0); };
+  });
+  m.querySelectorAll("[data-zminus]").forEach(function(b){
+    b.onclick = function(){ var z = S.zones.filter(function(x){return x.id===b.dataset.zminus;})[0];
+      if(z.tables.length<=1){ alert("至少保留一桌"); return; }
+      snapshot(); z.tables.pop(); save(); render(); closeModal(b); setTimeout(function(){ document.getElementById("btnSet").click(); },0); };
+  });
+  m.querySelector("#mExport").onclick = function(){ doExportJson(); };
+  m.querySelector("#mImport").onclick = function(){ doImportJson(); };
+  m.querySelector("#mResetLayout").onclick = function(){
+    if(confirm("重置为默认布局：A~D 区各 10 桌（主桌 = B 区第 1 桌 / B1，紧邻 T 台），婚车每车 4 座（主驾/副驾/后排左/后排右）。\n\n已入座的宾客会回到宾客池，宾客名单本身不受影响。继续？")){
+      snapshot(); resetLayout(); closeModal(this);
+    }
+  };
+  m.querySelector("#mReset").onclick = function(){
+    if(confirm("清空全部数据，恢复默认模板？此操作不可撤销。")){
+      S = defState(); undoStack=[]; redoStack=[]; save(); render(); closeModal(this);
+    }
+  };
+};
+
+document.getElementById("btnImport").onclick = function(){
+  var m = modal("批量导入宾客",
+      '<div class="hintbox">每行一位。可只写名字，也可用逗号分隔分组：<br>'
+    + '<code>张建国,男方亲友</code><br><code>王秀兰,女方亲友</code><br>'
+    + '分组只能是：男方亲友 / 女方亲友 / 同事 / 同学 / 其他</div>'
+    + '<textarea id="impTxt" rows="12" placeholder="张建国,男方亲友&#10;王秀兰,女方亲友&#10;李伟,同事"></textarea>',
+      '<span class="lf" id="impCnt"></span><button data-close>取消</button><button class="primary" id="impOk">导入</button>');
+  var ta = m.querySelector("#impTxt");
+  ta.oninput = function(){ m.querySelector("#impCnt").textContent = ta.value.split(/\r?\n/).filter(function(x){return x.trim();}).length + " 行"; };
+  m.querySelector("#impOk").onclick = function(){ var v = ta.value; closeModal(this); bulkImport(v); };
+  m.querySelector("[data-close]").onclick = function(){ closeModal(this); };
+  ta.focus();
+};
+document.getElementById("btnAddOne").onclick = function(){
+  var m = modal("添加一位宾客",
+      '<div class="row"><label>姓名</label><input id="aName"></div>'
+    + '<div class="row"><label>分组</label><select id="aTag">'
+    + TAGS.map(function(t){ return '<option>'+t.n+'</option>'; }).join("") + '</select></div>',
+      '<button data-close>取消</button><button class="primary" id="aOk">添加</button>');
+  m.querySelector("#aOk").onclick = function(){
+    var n = m.querySelector("#aName").value.trim();
+    if(n){ addGuest(n, m.querySelector("#aTag").value); closeModal(this); }
+  };
+  m.querySelector("[data-close]").onclick = function(){ closeModal(this); };
+};
+
+/* ==================== 导出 ==================== */
+function download(name, text, mime){
+  var b = new Blob([text], {type:(mime||"text/plain")+";charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(b); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function doExportJson(){
+  download("婚宴座位备份-" + new Date().toISOString().slice(0,10) + ".json", JSON.stringify(S, null, 2), "application/json");
+}
+function doImportJson(){
+  var inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".json,application/json";
+  inp.onchange = function(){
+    var f = inp.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      try{
+        var o = JSON.parse(r.result);
+        if(!o || !o.zones) throw new Error("文件格式不对");
+        if(!confirm("确认用备份覆盖当前数据？")) return;
+        S = o; undoStack=[]; redoStack=[]; save(); render();
+        alert("已恢复。");
+      }catch(e){ alert("恢复失败：" + e.message); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+document.getElementById("btnJson").onclick = doExportJson;
+document.getElementById("btnRestore").onclick = doImportJson;
+document.getElementById("btnPrint").onclick = function(){ window.print(); };
+document.getElementById("btnCsv").onclick = function(){
+  var rows = [["类别","区/车","位置","座位","姓名","分组"]];
+  S.zones.forEach(function(z){ z.tables.forEach(function(t){
+    t.seats.forEach(function(g,i){
+      var x = g?guestById(g):null;
+      rows.push(["宴席", z.name, t.name, "第"+(i+1)+"座", x?x.name:"", x?x.tag:""]);
+    });
+  }); });
+  S.cars.forEach(function(c){ c.seats.forEach(function(s){
+    var x = s.g?guestById(s.g):null;
+    rows.push(["婚车", c.name, c.driver||"", s.label, x?x.name:"", x?x.tag:""]);
+  }); });
+  var csv = "\uFEFF" + rows.map(function(r){
+    return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(",");
+  }).join("\r\n");
+  download("婚宴座位表.csv", csv, "text/csv");
+};
+
+/* ==================== 同步 ==================== */
+var sync = {
+  mode:"off", cfg:{}, baseV:0, remoteV:0, dirty:false, busy:false,
+  ok:false, msg:"未启用同步", timer:null, conflict:false
+};
+function syncCfgSave(){
+  try{ localStorage.setItem(KEY + "-sync", JSON.stringify({mode:sync.mode, cfg:sync.cfg})); }catch(e){}
+}
+function syncCfgLoad(){
+  try{
+    var o = JSON.parse(localStorage.getItem(KEY + "-sync") || "null");
+    var h = location.hash.replace(/^#/,"");
+    if(h){
+      var p = {};
+      h.split("&").forEach(function(kv){ var a = kv.split("="); p[a[0]] = decodeURIComponent(a[1]||""); });
+      if(p.tok && (p.id || p.url)){
+        o = { mode: p.m || (p.id ? "gist" : "custom"),
+              cfg: p.id ? {gistId:p.id, token:p.tok} : {getUrl:p.url, putUrl:p.url, token:p.tok} };
+      }
+    }
+    if(o && o.mode){ sync.mode = o.mode; sync.cfg = o.cfg || {}; }
+  }catch(e){}
+}
+function syncTouch(){ sync.dirty = true; if(sync.mode!=="off") syncPush(); }
+
+function syncStatus(){
+  var bar = document.getElementById("syncbar");
+  if(sync.mode==="off"){ bar.style.display="none"; return; }
+  bar.style.display = "flex";
+  var cls = sync.conflict ? "err" : (sync.ok ? "on" : (sync.busy ? "wait" : "err"));
+  var h = '<i class="sdot '+cls+'"></i><span>'+esc(sync.msg)+'</span>';
+  if(sync.conflict){
+    h += '<button class="sm" id="cfMine">以我为准（覆盖云端）</button>'
+      +  '<button class="sm" id="cfTheirs">以云端为准（丢弃我的改动）</button>';
+  }
+  h += '<span style="margin-left:auto" class="hintbox">'
+    +  (sync.mode==="gist" ? "GitHub Gist 同步 · 每 4 秒自动检查" :
+        sync.mode==="supabase" ? "Supabase 同步 · 每 4 秒自动检查" : "自定义接口同步 · 每 4 秒自动检查")
+    +  '</span><button class="ghost sm" id="syncOff">断开</button>';
+  bar.innerHTML = h;
+  var a = document.getElementById("cfMine"); if(a) a.onclick = function(){ sync.conflict=false; sync.baseV=sync.remoteV; syncPush(true); };
+  var b = document.getElementById("cfTheirs"); if(b) b.onclick = function(){ sync.conflict=false; render(); syncPull(); };
+  document.getElementById("syncOff").onclick = function(){
+    sync.mode="off"; sync.cfg={}; syncCfgSave(); syncStatus();
+  };
+}
+
+function payload(){ return { v: S.v, data: S }; }
+function adopt(remote){
+  S = remote.data || remote;
+  S.v = remote.v || S.v;
+  selGuest = null;
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  render();
+}
+function hdrs(extra){
+  var h = Object.assign({ "Content-Type":"application/json" }, extra||{});
+  if(sync.cfg.token) h["Authorization"] = "Bearer " + sync.cfg.token;
+  return h;
+}
+function syncRead(){
+  if(sync.mode==="gist"){
+    return fetch("https://api.github.com/gists/" + encodeURIComponent(sync.cfg.gistId), {headers:hdrs({Accept:"application/vnd.github+json"})})
+      .then(function(r){ if(!r.ok) throw new Error("Gist 读取失败 " + r.status); return r.json(); })
+      .then(function(j){
+        var f = j.files && (j.files["wedding.json"] || j.files[Object.keys(j.files)[0]]);
+        if(!f) throw new Error("Gist 里没有数据文件");
+        return JSON.parse(f.content);
+      });
+  }
+  if(sync.mode==="supabase"){
+    var u = sync.cfg.url.replace(/\/$/,"") + "/rest/v1/" + (sync.cfg.table||"wedding_state") + "?id=eq." + (sync.cfg.row||1) + "&select=*";
+    return fetch(u, {headers:hdrs({apikey:sync.cfg.key, Authorization:"Bearer " + sync.cfg.key})})
+      .then(function(r){ if(!r.ok) throw new Error("Supabase 读取失败 " + r.status); return r.json(); })
+      .then(function(a){ if(!a.length) throw new Error("找不到数据行"); return a[0].payload; });
+  }
+  return fetch(sync.cfg.getUrl, {headers:hdrs()})
+    .then(function(r){ if(!r.ok) throw new Error("读取失败 " + r.status); return r.json(); });
+}
+function syncWrite(body){
+  if(sync.mode==="gist"){
+    return fetch("https://api.github.com/gists/" + encodeURIComponent(sync.cfg.gistId), {
+      method:"PATCH", headers:hdrs({Accept:"application/vnd.github+json"}),
+      body: JSON.stringify({ files:{ "wedding.json":{ content: JSON.stringify(body) } } })
+    }).then(function(r){ if(!r.ok) throw new Error("Gist 写入失败 " + r.status); return r.json(); });
+  }
+  if(sync.mode==="supabase"){
+    var u = sync.cfg.url.replace(/\/$/,"") + "/rest/v1/" + (sync.cfg.table||"wedding_state") + "?id=eq." + (sync.cfg.row||1);
+    return fetch(u, { method:"PATCH",
+      headers:hdrs({apikey:sync.cfg.key, Authorization:"Bearer " + sync.cfg.key, Prefer:"return=minimal"}),
+      body: JSON.stringify({ payload: body }) })
+      .then(function(r){ if(!r.ok) throw new Error("Supabase 写入失败 " + r.status); return body; });
+  }
+  return fetch(sync.cfg.putUrl, { method:"PUT", headers:hdrs(), body: JSON.stringify(body) })
+    .then(function(r){ if(!r.ok) throw new Error("写入失败 " + r.status); return body; });
+}
+
+function syncPull(manual){
+  if(sync.mode==="off" || sync.busy) return Promise.resolve();
+  sync.busy = true;
+  return syncRead().then(function(remote){
+    sync.remoteV = remote.v || 0;
+    if(sync.remoteV > sync.baseV){
+      if(sync.dirty && !manual){
+        sync.conflict = true;
+        sync.msg = "冲突：云端有他人的新改动（v" + sync.remoteV + "），你的改动尚未上传";
+        sync.ok = false;
+      }else{
+        adopt(remote); sync.baseV = sync.remoteV; sync.dirty = false;
+        sync.ok = true; sync.conflict = false;
+        sync.msg = "已同步 · 载入云端 v" + sync.remoteV + " · " + new Date().toLocaleTimeString("zh-CN");
+      }
+    }else{
+      sync.ok = true;
+      sync.msg = "已连接 · 云端 v" + sync.remoteV + " · 最新 · " + new Date().toLocaleTimeString("zh-CN");
+    }
+  }).catch(function(e){
+    sync.ok = false; sync.msg = "同步异常：" + e.message;
+  }).then(function(){ sync.busy = false; syncStatus(); });
+}
+function syncPush(force){
+  if(sync.mode==="off" || sync.busy) return Promise.resolve();
+  if(!sync.dirty && !force) return Promise.resolve();
+  sync.busy = true;
+  return syncRead().then(function(remote){
+    sync.remoteV = remote.v || 0;
+    if(!force && sync.remoteV > sync.baseV){
+      sync.conflict = true; sync.busy = false;
+      sync.msg = "冲突：云端版本较新（v" + sync.remoteV + "），请选择保留哪一份";
+      syncStatus(); throw new Error("conflict");
+    }
+    S.v = sync.remoteV + 1;
+    return syncWrite(payload());
+  }).then(function(){
+    sync.baseV = S.v; sync.remoteV = S.v; sync.dirty = false; sync.conflict = false; sync.ok = true;
+    sync.msg = "已上传 · 云端 v" + S.v + " · " + new Date().toLocaleTimeString("zh-CN");
+    try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  }).catch(function(e){
+    if(e.message === "conflict") return;
+    sync.ok = false; sync.msg = "上传失败：" + e.message;
+  }).then(function(){ sync.busy = false; syncStatus(); });
+}
+function syncLoop(){
+  if(sync.mode==="off") return;
+  if(!sync.dirty) syncPull();
+  else syncPush();
+}
+document.getElementById("btnSync").onclick = function(){
+  var cfg = sync.cfg || {};
+  var m = modal("多人协同同步",
+      '<div class="hintbox">默认关闭 = 纯本地使用。开启后所有改动会写到一个共享的云端 JSON，其他人打开同一条链接即可看到。</div>'
+    + '<div class="fld"><span>方式</span><select id="sMode">'
+    +   '<option value="off"'+(sync.mode==="off"?" selected":"")+'>关闭（仅本机保存）</option>'
+    +   '<option value="gist"'+(sync.mode==="gist"?" selected":"")+'>GitHub Gist（推荐，免费、国内可达）</option>'
+    +   '<option value="supabase"'+(sync.mode==="supabase"?" selected":"")+'>Supabase（免费，实时性更好）</option>'
+    +   '<option value="custom"'+(sync.mode==="custom"?" selected":"")+'>自定义接口（GET/PUT 同一 URL）</option>'
+    + '</select></div>'
+    + '<div id="sGist" class="fld" style="display:none"><span>GitHub 个人令牌（勾选 gist 权限即可）</span>'
+    +   '<input id="sTok" value="'+esc(cfg.token||"")+'" placeholder="ghp_xxxx">'
+    +   '<div class="row"><input id="sGistId" value="'+esc(cfg.gistId||"")+'" placeholder="Gist ID，留空点右侧创建"><button class="sm" id="sCreate">创建新的</button></div>'
+    +   '<div class="hintbox">令牌和 Gist ID 会保存在本机；生成的分享链接里也带这两个参数，收到链接的人打开即自动同步。</div></div>'
+    + '<div id="sSupa" class="fld" style="display:none"><span>项目地址</span><input id="sUrl" value="'+esc(cfg.url||"")+'" placeholder="https://xxxx.supabase.co">'
+    +   '<span>anon key</span><input id="sKey" value="'+esc(cfg.key||"")+'">'
+    +   '<div class="row"><label>表名</label><input id="sTable" value="'+esc(cfg.table||"wedding_state")+'"></div>'
+    +   '<div class="hintbox">需在 Supabase 建表：<code>create table wedding_state(id int primary key, payload jsonb);</code> 并插入一行 <code>id=1</code>。</div></div>'
+    + '<div id="sCust" class="fld" style="display:none"><span>接口地址（GET 读、PUT 写同一个 JSON）</span>'
+    +   '<input id="sCurl" value="'+esc(cfg.getUrl||"")+'" placeholder="https://你的接口/wedding.json">'
+    +   '<span>可选：Bearer Token</span><input id="sCtok" value="'+esc(cfg.token||"")+'"></div>'
+    + '<div id="sShare" style="display:none" class="fld"><span>分享链接</span><textarea id="sShareTxt" rows="3" readonly></textarea>'
+    +   '<div class="row"><button class="sm" id="sCopy">复制链接</button><button class="sm" id="sNow">立即同步一次</button></div></div>',
+      '<span class="lf">每 4 秒自动检查一次</span><button data-close>取消</button><button class="primary" id="sOk">保存并连接</button>');
+
+  var sel = m.querySelector("#sMode");
+  function refresh(){
+    ["off","gist","supabase","custom"].forEach(function(k){
+      var el = m.querySelector("#s" + ({off:"Nothing",gist:"Gist",supabase:"Supa",custom:"Cust"})[k]);
+      if(el) el.style.display = (sel.value===k) ? "" : "none";
+    });
+    m.querySelector("#sShare").style.display = (sel.value==="off") ? "none" : "";
+    buildShare();
+  }
+  function buildShare(){
+    var base = location.origin + location.pathname + "#";
+    var p = [];
+    if(sel.value==="gist"){ p.push("m=gist","id="+encodeURIComponent(m.querySelector("#sGistId").value.trim()),"tok="+encodeURIComponent(m.querySelector("#sTok").value.trim())); }
+    if(sel.value==="supabase"){ p.push("m=supabase","url="+encodeURIComponent(m.querySelector("#sUrl").value.trim()),"tok="+encodeURIComponent(m.querySelector("#sKey").value.trim()),"t="+encodeURIComponent(m.querySelector("#sTable").value.trim()||"wedding_state")); }
+    if(sel.value==="custom"){ p.push("m=custom","url="+encodeURIComponent(m.querySelector("#sCurl").value.trim()),"tok="+encodeURIComponent(m.querySelector("#sCtok").value.trim())); }
+    var txt = p.length ? base + p.join("&") : "（先填写上面的配置）";
+    if(sel.value==="gist" && !m.querySelector("#sGistId").value.trim()) txt = "（先点「创建新的」生成一个 Gist）";
+    m.querySelector("#sShareTxt").value = txt;
+  }
+  ["#sTok","#sGistId","#sUrl","#sKey","#sTable","#sCurl","#sCtok"].forEach(function(s){
+    var el = m.querySelector(s); if(el) el.oninput = buildShare;
+  });
+  sel.onchange = refresh; refresh();
+
+  m.querySelector("#sCreate").onclick = function(){
+    var tok = m.querySelector("#sTok").value.trim();
+    if(!tok){ alert("先填 GitHub 令牌"); return; }
+    sync.mode = "gist"; sync.cfg = { token:tok, gistId:"" };
+    fetch("https://api.github.com/gists", { method:"POST",
+      headers:{ "Content-Type":"application/json", Accept:"application/vnd.github+json", Authorization:"Bearer " + tok },
+      body: JSON.stringify({ description:"婚宴座位同步数据", public:false,
+        files:{ "wedding.json":{ content: JSON.stringify(payload()) } } })
+    }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t.slice(0,200)); }); return r.json(); })
+      .then(function(j){
+        m.querySelector("#sGistId").value = j.id; buildShare();
+        alert("创建成功，Gist ID：" + j.id);
+      }).catch(function(e){ alert("创建失败：" + e.message); });
+  };
+  m.querySelector("#sCopy").onclick = function(){
+    var ta = m.querySelector("#sShareTxt"); ta.select();
+    try{ document.execCommand("copy"); alert("链接已复制，发给一起排座位的人即可。"); }
+    catch(e){ alert("请手动复制。"); }
+  };
+  m.querySelector("#sNow").onclick = function(){ closeModal(this); syncPush(true).then(syncPull); };
+  m.querySelector("#sOk").onclick = function(){
+    var mode = sel.value;
+    if(mode==="gist"){
+      var gid = m.querySelector("#sGistId").value.trim(), tok = m.querySelector("#sTok").value.trim();
+      if(!gid || !tok){ alert("请填令牌和 Gist ID"); return; }
+      sync.mode="gist"; sync.cfg={ gistId:gid, token:tok };
+    }else if(mode==="supabase"){
+      var url = m.querySelector("#sUrl").value.trim(), key = m.querySelector("#sKey").value.trim();
+      if(!url || !key){ alert("请填项目地址和 anon key"); return; }
+      sync.mode="supabase"; sync.cfg={ url:url, key:key, table:m.querySelector("#sTable").value.trim()||"wedding_state", row:1 };
+    }else if(mode==="custom"){
+      var cu = m.querySelector("#sCurl").value.trim();
+      if(!cu){ alert("请填接口地址"); return; }
+      sync.mode="custom"; sync.cfg={ getUrl:cu, putUrl:cu, token:m.querySelector("#sCtok").value.trim() };
+    }else{
+      sync.mode="off"; sync.cfg={};
+    }
+    sync.cfg && syncCfgSave();
+    sync.baseV = 0; sync.remoteV = 0; sync.dirty = true; sync.conflict = false;
+    closeModal(this);
+    syncStatus();
+    if(sync.mode!=="off") syncPush(true);
+  };
+  m.querySelector("[data-close]").onclick = function(){ closeModal(this); };
+};
+
+/* ==================== 启动 ==================== */
+S = load();
+syncCfgLoad();
+if(sync.mode !== "off"){
+  syncStatus();
+  syncPush(true).then(syncPull);
+  setInterval(syncLoop, 4000);
+  window.addEventListener("beforeunload", function(e){
+    if(sync.dirty && sync.mode!=="off"){ e.preventDefault(); e.returnValue = ""; }
+  });
+}
+// 本地存一份兜底备份（跨设备不可见，但防误清缓存）
+window.addEventListener("beforeunload", function(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+});
+render();
+</script>
+</body>
+</html>
