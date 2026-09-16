@@ -156,6 +156,8 @@ table.grid tbody tr:hover{background:var(--bg)}
 #syncbar{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;border-bottom:1px solid var(--line)}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--ink3);flex:none}
 .sdot.on{background:var(--ok)} .sdot.err{background:var(--brand)} .sdot.wait{background:var(--warn)}
+.statbox{background:var(--brand-soft);color:var(--brand);border:1px solid #f1d4cf;padding:2px 8px;border-radius:999px;font-size:12px;white-space:nowrap}
+.statbox b{font-weight:700}
 .banner{background:var(--brand-soft);border:1px solid #F0C4BC;color:#8C2A20;border-radius:8px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 .hintbox{font-size:12px;color:var(--ink3);line-height:1.7}
@@ -1063,7 +1065,9 @@ function syncStatus(){
   if(sync.mode==="off"){ bar.style.display="none"; return; }
   bar.style.display = "flex";
   var cls = sync.conflict ? "err" : (sync.ok ? "on" : (sync.busy ? "wait" : "err"));
-  var h = '<i class="sdot '+cls+'"></i><span>'+esc(sync.msg)+'</span>';
+  var lo = statOf(S), ro = statOf(sync.remoteData);
+  var h = '<i class="sdot '+cls+'"></i><span>'+esc(sync.msg)+'</span>'
+    + '<span class="statbox">本机 <b>'+lo.g+'</b> 人 / 云端 <b>'+(ro?ro.g:"-")+'</b> 人</span>';
   if(sync.conflict){
     h += '<button class="sm" id="cfMine">以我为准（覆盖云端）</button>'
       +  '<button class="sm" id="cfTheirs">以云端为准（丢弃我的改动）</button>';
@@ -1100,7 +1104,7 @@ function syncRead(){
       .then(function(j){
         var f = j.files && (j.files["wedding.json"] || j.files[Object.keys(j.files)[0]]);
         if(!f) throw new Error("Gist 里没有数据文件");
-        return JSON.parse(f.content);
+        var obj = JSON.parse(f.content); sync.remoteData = obj; return obj;
       });
   }
   if(sync.mode==="supabase"){
@@ -1110,7 +1114,7 @@ function syncRead(){
       .then(function(a){ if(!a.length) throw new Error("找不到数据行"); return a[0].payload; });
   }
   return fetch(sync.cfg.getUrl, {headers:hdrs()})
-    .then(function(r){ if(!r.ok) throw new Error("读取失败 " + r.status); return r.json(); });
+    .then(function(r){ if(!r.ok) throw new Error("读取失败 " + r.status); return r.json().then(function(d){ sync.remoteData = d; return d; }); });
 }
 function syncWrite(body){
   if(sync.mode==="gist"){
@@ -1292,6 +1296,14 @@ function stateEmpty(s){
   if(s.zones) for(i=0;i<s.zones.length;i++){ var z=s.zones[i]; for(j=0;j<z.tables.length;j++){ var t=z.tables[j]; for(k=0;k<t.seats.length;k++) if(t.seats[k]) return false; } }
   if(s.cars) for(i=0;i<s.cars.length;i++){ var cs=s.cars[i].seats; for(j=0;j<cs.length;j++) if(cs[j].g) return false; }
   return true;
+}
+function statOf(s){
+  s = (s && s.data) ? s.data : s;
+  if(!s) return {g:0,t:0};
+  var g = (s.guests||[]).length, t = 0, i, j, z, tb, cs;
+  if(s.zones) for(i=0;i<s.zones.length;i++){ z=s.zones[i]; for(j=0;j<z.tables.length;j++){ tb=z.tables[j]; for(var k=0;k<tb.seats.length;k++) if(tb.seats[k]) t++; } }
+  if(s.cars)  for(i=0;i<s.cars.length;i++){ cs=s.cars[i].seats; for(j=0;j<cs.length;j++) if(cs[j].g) t++; }
+  return {g:g, t:t};
 }
 function syncInit(){
   return syncRead().then(function(remote){
