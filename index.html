@@ -1282,11 +1282,47 @@ document.getElementById("btnSync").onclick = function(){
 };
 
 /* ==================== 启动 ==================== */
+function stateEmpty(s){
+  s = (s && s.data) ? s.data : s;
+  if(!s) return true;
+  if(s.guests && s.guests.length) return false;
+  var i,j,k;
+  if(s.zones) for(i=0;i<s.zones.length;i++){ var z=s.zones[i]; for(j=0;j<z.tables.length;j++){ var t=z.tables[j]; for(k=0;k<t.seats.length;k++) if(t.seats[k]) return false; } }
+  if(s.cars) for(i=0;i<s.cars.length;i++){ var cs=s.cars[i].seats; for(j=0;j<cs.length;j++) if(cs[j].g) return false; }
+  return true;
+}
+function syncInit(){
+  return syncRead().then(function(remote){
+    sync.remoteV = remote.v || 0;
+    var rE = stateEmpty(remote), lE = stateEmpty(S);
+    if(!lE && rE){                                   // 云端空、本地有数据 → 上传本地
+      return syncPush(true);
+    }
+    if(lE && !rE){                                   // 本地全新/为空、云端有数据 → 下载云端
+      adopt(remote); sync.baseV = sync.remoteV; sync.dirty = false; sync.conflict = false; sync.ok = true;
+      sync.msg = "已同步 · 载入云端 v" + sync.remoteV + " · " + new Date().toLocaleTimeString("zh-CN");
+      syncStatus(); return;
+    }
+    if(!lE && !rE){                                  // 两边都有数据 → 不自动覆盖，交用户裁决
+      if(JSON.stringify(remote.data || remote) === JSON.stringify(S)){
+        sync.baseV = sync.remoteV; sync.ok = true;
+        sync.msg = "已连接 · 云端 v" + sync.remoteV + " · 最新 · " + new Date().toLocaleTimeString("zh-CN");
+      }else{
+        sync.conflict = true; sync.ok = false; sync.baseV = sync.remoteV;   // 锁定基线，防止轮询自动覆盖
+        sync.msg = "冲突：本机与云端都有数据，请点右侧选择保留哪一份";
+      }
+      syncStatus(); return;
+    }
+    sync.ok = true; sync.baseV = sync.remoteV; sync.msg = "已连接 · 云端 v" + sync.remoteV; syncStatus(); // 两边都空
+  }).catch(function(e){
+    sync.ok = false; sync.msg = "同步异常：" + e.message; syncStatus();
+  });
+}
 S = load();
 syncCfgLoad();
 if(sync.mode !== "off"){
   syncStatus();
-  syncPush(true).then(syncPull);
+  syncInit();
   setInterval(syncLoop, 4000);
   window.addEventListener("beforeunload", function(e){
     if(sync.dirty && sync.mode!=="off"){ e.preventDefault(); e.returnValue = ""; }
