@@ -1035,19 +1035,29 @@ var sync = {
 function syncCfgSave(){
   try{ localStorage.setItem(KEY + "-sync", JSON.stringify({mode:sync.mode, cfg:sync.cfg})); }catch(e){}
 }
+// 内置默认同步配置：任意设备打开页面（无 # 参数、无本地配置）即自动同步到该 Gist
+// 令牌不内置（避免写入公开仓库泄露）；Gist 设为公开，打开即可自动读取最新数据，
+// 首次需要写入时再在本机粘贴一次令牌（仅 gist 权限即可），之后全自动同步。
+var BUILTIN_GIST_ID = "078d2dc93d0a69ce1ebafbdbab34d356";
+var BUILTIN_TOKEN   = "";
 function syncCfgLoad(){
   try{
-    var o = JSON.parse(localStorage.getItem(KEY + "-sync") || "null");
+    var saved = JSON.parse(localStorage.getItem(KEY + "-sync") || "null");
     var h = location.hash.replace(/^#/,"");
     if(h){
       var p = {};
       h.split("&").forEach(function(kv){ var a = kv.split("="); p[a[0]] = decodeURIComponent(a[1]||""); });
       if(p.tok && (p.id || p.url)){
-        o = { mode: p.m || (p.id ? "gist" : "custom"),
+        saved = { mode: p.m || (p.id ? "gist" : "custom"),
               cfg: p.id ? {gistId:p.id, token:p.tok} : {getUrl:p.url, putUrl:p.url, token:p.tok} };
       }
     }
-    if(o && o.mode){ sync.mode = o.mode; sync.cfg = o.cfg || {}; }
+    if(saved && saved.mode){ sync.mode = saved.mode; sync.cfg = saved.cfg || {}; }
+    // 仅在完全未配置（无 hash、无本地保存）时启用内置同步，保证手机/新浏览器打开即同步
+    if(sync.mode === "off" && !saved){
+      sync.mode = "gist";
+      sync.cfg = { gistId: BUILTIN_GIST_ID, token: BUILTIN_TOKEN };
+    }
   }catch(e){}
 }
 function syncTouch(){ sync.dirty = true; if(sync.mode!=="off") syncPush(); }
@@ -1150,6 +1160,12 @@ function syncPull(manual){
 function syncPush(force){
   if(sync.mode==="off" || sync.busy) return Promise.resolve();
   if(!sync.dirty && !force) return Promise.resolve();
+  // 内置公开 Gist 读取无需令牌；首次写入时若本机无令牌，则提示粘贴一次（仅本机保存）
+  if(sync.mode==="gist" && !sync.cfg.token){
+    var t = (typeof prompt==="function") ? prompt("首次编辑需输入同步令牌（ghp_ 开头、仅 gist 权限即可），仅保存在本机：") : null;
+    if(!t){ sync.msg="未提供令牌，本次改动仅本机保存、未同步"; sync.dirty=false; syncStatus(); return Promise.resolve(); }
+    sync.cfg.token = String(t).trim(); syncCfgSave();
+  }
   sync.busy = true;
   return syncRead().then(function(remote){
     sync.remoteV = remote.v || 0;
