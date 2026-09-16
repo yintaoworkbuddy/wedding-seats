@@ -1136,6 +1136,8 @@ function syncPull(manual){
   return syncRead().then(function(remote){
     sync.remoteV = remote.v || 0;
     if(sync.remoteV > sync.baseV){
+      // 启动对账未完成（baseV=0）时绝不自动覆盖本地，避免竞态把用户数据冲掉
+      if(!manual && !sync.dirty && sync.baseV === 0){ sync.busy = false; return; }
       if(sync.dirty && !manual){
         sync.conflict = true;
         sync.msg = "冲突：云端有他人的新改动（v" + sync.remoteV + "），你的改动尚未上传";
