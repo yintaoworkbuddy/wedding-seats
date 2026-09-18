@@ -67,7 +67,8 @@ main{padding:16px}
 .col-hd .ops{margin-top:2px}
 .col-tables{display:flex;flex-direction:column;gap:8px}
 .fcol .tbl .ring{width:58px;height:58px}
-.fcol .tbl.main .ring{width:66px;height:66px}
+.fcol .tbl.main-primary .ring{width:70px;height:70px}
+.fcol .tbl.main-secondary .ring{width:64px;height:64px}
 .floor-add{flex:0 0 auto;display:flex;align-items:flex-start;padding-top:34px}
 .tstage{flex:0 0 auto;align-self:stretch;width:46px;position:relative;margin:0 3px;
   background:linear-gradient(180deg, rgba(192,57,43,.05), rgba(192,57,43,.11), rgba(192,57,43,.05))}
@@ -331,8 +332,8 @@ function defState(){
   };
   S.zones = [
     mkZone("A 区", 10, 10),
-    mkZone("B 区", 10, 10, "主桌"),   // 主桌 = B 区第 1 桌（B1），紧邻 T 台
-    mkZone("C 区", 10, 10),
+    mkZone("B 区", 10, 10, "secondary"),   // 次主婚桌 = B 区第 1 桌（B1），紧邻 T 台
+    mkZone("C 区", 10, 10, "primary"),     // 主婚桌 = C 区第 1 桌（C1），紧邻 T 台
     mkZone("D 区", 10, 10)
   ];
   S.cars = [];
@@ -342,11 +343,14 @@ function defState(){
   }
   return S;
 }
-function mkZone(name, n, seats, first){
+function mkZone(name, n, seats, tag){
+  // tag: null | "primary"(主婚桌) | "secondary"(次主婚桌)，仅作用于该区第 1 桌
   var z = { id:uid("z"), name:name, tables:[] };
+  var base = name.replace(/\s*区$/,"");
   for(var i=0;i<n;i++){
-    z.tables.push({ id:uid("t"), name: (i===0&&first) ? (name.replace(/\s*区$/,"")+"-1 · 主桌") : (name.replace(/\s*区$/,"")+"-"+(i+1)),
-                    main: !!(i===0&&first), seats: new Array(seats).fill(null) });
+    z.tables.push({ id:uid("t"),
+      name: (i===0 && tag) ? (base + "-1 · " + (tag==="primary" ? "主婚桌" : "次主婚桌")) : (base + "-" + (i+1)),
+      main: (i===0 ? (tag||null) : null), seats: new Array(seats).fill(null) });
   }
   return z;
 }
@@ -416,6 +420,14 @@ function migrate(o){
   if(isOldDefaultLayout(o.zones)){
     var d = defState();
     o.zones = d.zones; o.cars = d.cars;
+  }
+  // 标准 A/B/C/D 四区布局：统一应用规范主桌标记（C1=主婚桌、B1=次主婚桌），仅改标记，不影响已入座数据
+  if(o.zones && o.zones.map(function(z){ return z.name; }).join(",") === "A 区,B 区,C 区,D 区"){
+    o.zones.forEach(function(z){ (z.tables||[]).forEach(function(t){ if(t.main) t.main = null; }); });
+    var C = o.zones.filter(function(z){ return z.name==="C 区"; })[0];
+    var B = o.zones.filter(function(z){ return z.name==="B 区"; })[0];
+    if(C && C.tables[0]){ C.tables[0].main = "primary";   C.tables[0].name = "C-1 · 主婚桌"; }
+    if(B && B.tables[0]){ B.tables[0].main = "secondary"; B.tables[0].name = "B-1 · 次主婚桌"; }
   }
   return o;
 }
@@ -637,7 +649,10 @@ function renderFloor(){
       +  '<div class="col-tables">';
     z.tables.forEach(function(t){
       var full = t.seats.every(Boolean);
-      h += '<div class="tbl'+(selTable===t.id?" sel":"")+(full?" full":"")+(t.main?" main":"")+'" data-tbl="'+t.id+'">'
+      var mcls = t.main ? (" main main-"+t.main) : "";
+      var badge = t.main==="primary" ? '<span class="ribbon ribbon-p">主婚桌</span>'
+                : (t.main==="secondary" ? '<span class="ribbon ribbon-s">次主婚桌</span>' : "");
+      h += '<div class="tbl'+(selTable===t.id?" sel":"")+(full?" full":"")+mcls+'" data-tbl="'+t.id+'">'+badge
         +  ringSVG(t, t.seats.length)
         +  '<div class="tname">'+esc(t.name)+'</div>'
         +  '</div>';
@@ -941,7 +956,7 @@ document.getElementById("btnSet").onclick = function(){
   m.querySelector("#mExport").onclick = function(){ doExportJson(); };
   m.querySelector("#mImport").onclick = function(){ doImportJson(); };
   m.querySelector("#mResetLayout").onclick = function(){
-    if(confirm("重置为默认布局：A~D 区各 10 桌（主桌 = B 区第 1 桌 / B1，紧邻 T 台），婚车每车 4 座（主驾/副驾/后排左/后排右）。\n\n已入座的宾客会回到宾客池，宾客名单本身不受影响。继续？")){
+    if(confirm("重置为默认布局：A~D 区各 10 桌（主婚桌 = C 区第 1 桌 / C1，次主婚桌 = B 区第 1 桌 / B1，均紧邻 T 台），婚车每车 4 座（主驾/副驾/后排左/后排右）。\n\n已入座的宾客会回到宾客池，宾客名单本身不受影响。继续？")){
       snapshot(); resetLayout(); closeModal(this);
     }
   };
