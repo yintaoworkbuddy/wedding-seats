@@ -66,9 +66,7 @@ main{padding:16px}
 .col-hd .cnt{font-size:11px;color:var(--ink3)}
 .col-hd .ops{margin-top:2px}
 .col-tables{display:flex;flex-direction:column;gap:8px}
-.fcol .tbl .ring{width:58px;height:58px}
-.fcol .tbl.main-primary .ring{width:70px;height:70px}
-.fcol .tbl.main-secondary .ring{width:64px;height:64px}
+.fcol .tbl .ring{width:60px;height:60px}
 .floor-add{flex:0 0 auto;display:flex;align-items:flex-start;padding-top:34px}
 .tstage{flex:0 0 auto;align-self:stretch;width:46px;position:relative;margin:0 3px;
   background:linear-gradient(180deg, rgba(192,57,43,.05), rgba(192,57,43,.11), rgba(192,57,43,.05))}
@@ -252,10 +250,24 @@ table.grid tbody tr:hover{background:var(--bg)}
     <section id="view-cars" style="display:none">
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-body hintbox">
-          按车分配乘坐人员：在空位上点一下直接打字填姓名即可。主驾一般填司机，不计入宾客统计。
+          婚车安排分两栏：<b>接亲安排</b>填每辆车的角色 / 司机 / 集合信息；<b>返程座位安排</b>排婚礼结束后回酒店的车上座位（点空位直接打字填姓名）。主驾一般填司机，不计入宾客统计。
         </div>
       </div>
-      <div class="cars" id="cars"></div>
+      <div class="cars2">
+        <div class="ccol">
+          <div class="panel">
+            <h3>接亲安排<span class="sp">车队分工 / 司机</span></h3>
+            <div class="panel-body"><div id="carsPlan"></div></div>
+          </div>
+        </div>
+        <div class="ccol">
+          <div class="panel">
+            <h3>返程座位安排<span class="sp">回酒店车上座位</span></h3>
+            <div class="panel-body"><div class="cars" id="carsSeats"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="no-print" style="margin-top:14px"><button class="sm" id="btnAddCar">+ 增加一辆车</button></div>
       <div class="rail no-print" style="position:static;margin-top:16px;max-width:var(--rail)">
         <div class="panel">
           <h3>宾客池<span class="sp" id="poolTip2"></span></h3>
@@ -409,6 +421,8 @@ function migrate(o){
   if(!o.meta.seats) o.meta.seats = 10;
   // 婚车：去掉「后排中」（仅在该座位为空时删，避免静默丢人）
   (o.cars||[]).forEach(function(c){
+    if(c.role===undefined) c.role = "";
+    if(c.note===undefined) c.note = "";
     (c.seats||[]).forEach(function(s){ if(s.g===undefined) s.g = null; });
     if(c.seats && c.seats.length > CAR_SEATS.length){
       var mid = c.seats.filter(function(s){ return s.label==="后排中"; });
@@ -714,11 +728,20 @@ function renderSeatPane(){
   }
 }
 
+function renderCarsPlan(){
+  document.getElementById("carsPlan").innerHTML = S.cars.map(function(c){
+    return '<div class="plan-card"><div class="cp-hd"><span class="cname">'+esc(c.name)+'</span>'
+      + '<button class="ghost sm no-print cdel" data-cardel="'+c.id+'">删除</button></div>'
+      + '<div class="cp-row"><label>角色</label><input data-crole="'+c.id+'" value="'+esc(c.role)+'" placeholder="头车 / 伴郎车 / 摄像车…"></div>'
+      + '<div class="cp-row"><label>司机</label><input data-cdrv="'+c.id+'" value="'+esc(c.driver)+'" placeholder="姓名 / 电话"></div>'
+      + '<div class="cp-row"><label>集合</label><input data-cnote="'+c.id+'" value="'+esc(c.note)+'" placeholder="时间 / 地点 / 备注"></div>'
+      + '</div>';
+  }).join("");
+}
 function renderCars(){
-  document.getElementById("cars").innerHTML = S.cars.map(function(c){
+  document.getElementById("carsSeats").innerHTML = S.cars.map(function(c){
     var h = '<div class="car"><div class="car-hd"><span class="cname">'+esc(c.name)+'</span>'
-      + '<input class="cdrv" data-cdrv="'+c.id+'" value="'+esc(c.driver)+'" placeholder="司机 / 备注">'
-      + '<button class="ghost sm no-print" data-cardel="'+c.id+'">删除</button></div>';
+      + '<span class="cdrv">'+(c.role?esc(c.role):(c.driver?esc(c.driver):""))+'</span></div>';
     c.seats.forEach(function(s, i){
       if(isEditing("c", c.id, i)){ h += editBoxHTML(); return; }
       var g = s.g ? guestById(s.g) : null;
@@ -730,7 +753,7 @@ function renderCars(){
         +  '<span class="nm">'+txt+'</span>' + (g?'<span class="x" data-del="'+g.id+'">&times;</span>':"") + '</div>';
     });
     return h + '</div>';
-  }).join("") + '<div class="no-print"><button class="sm" id="btnAddCar">+ 增加一辆车</button></div>';
+  }).join("");
 }
 
 function renderGuests(){
@@ -764,7 +787,8 @@ function renderExport(){
   });
   var carH = S.cars.map(function(c){
     var li = c.seats.map(function(s){ var g = s.g?guestById(s.g):null; return '<li>'+esc(s.label)+'：'+(g?esc(g.name):"（空）")+'</li>'; }).join("");
-    return '<div class="pcard"><h5>'+esc(c.name)+'</h5><div class="meta">'+esc(c.driver||"未填司机")+'</div><ul style="margin:0;padding-left:18px">'+li+'</ul></div>';
+    var meta = [c.role, c.driver, c.note].filter(Boolean).join(" · ") || "未填";
+    return '<div class="pcard"><h5>'+esc(c.name)+'</h5><div class="meta">'+esc(meta)+'</div><ul style="margin:0;padding-left:18px">'+li+'</ul></div>';
   }).join("");
   document.getElementById("printGrid").innerHTML = h + carH;
 }
@@ -785,7 +809,7 @@ function renderStats(){
 function render(){
   renderStats();
   if(view==="hall"){ renderFloor(); renderPool("pool","qPool"); renderSeatPane(); }
-  else if(view==="cars"){ renderCars(); renderPool("pool2","qPool2"); }
+  else if(view==="cars"){ renderCarsPlan(); renderCars(); renderPool("pool2","qPool2"); }
   else if(view==="guests"){ renderGuests(); }
   else if(view==="export"){ renderExport(); }
   var u = document.getElementById("btnUndo"), r = document.getElementById("btnRedo");
@@ -877,15 +901,16 @@ document.addEventListener("click", function(e){
   if(e.target.id==="btnAddZone"){ var nm = prompt("新区名称（如：D 区）","D 区"); if(nm){ snapshot(); S.zones.push(mkZone(nm, 6, S.meta.seats)); save(); render(); } return; }
   if(e.target.id==="btnAddCar"){
     snapshot();
-    S.cars.push({ id:uid("c"), name:(S.cars.length+1)+"号车", driver:"",
+    S.cars.push({ id:uid("c"), name:(S.cars.length+1)+"号车", role:"", driver:"", note:"",
       seats: CAR_SEATS.map(function(l){ return {label:l,g:null}; }) });
     save(); render(); return;
   }
 });
 document.addEventListener("input", function(e){
-  if(e.target.dataset && e.target.dataset.cdrv){
-    var c = findCar(e.target.dataset.cdrv); if(c){ c.driver = e.target.value; save(); }
-  }
+  var d = e.target.dataset || {};
+  if(d.cdrv){ var c = findCar(d.cdrv); if(c){ c.driver = e.target.value; save(); } }
+  else if(d.crole){ var c2 = findCar(d.crole); if(c2){ c2.role = e.target.value; save(); } }
+  else if(d.cnote){ var c3 = findCar(d.cnote); if(c3){ c3.note = e.target.value; save(); } }
 });
 
 /* ==================== 弹窗 ==================== */
