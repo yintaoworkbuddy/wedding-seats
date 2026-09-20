@@ -119,6 +119,9 @@ main{padding:16px}
 .car-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
 .car-hd .cname{font-weight:600}
 .car-hd .cdrv{margin-left:auto;font-size:12px;color:var(--ink2);background:var(--bg);padding:2px 8px;border-radius:6px}
+ .car-hd .ctrip{font-size:12px;padding:1px 8px;border-radius:6px;font-weight:600;margin-left:6px}
+ .car-hd .ctrip-p{color:#fff;background:var(--brand)}
+ .car-hd .ctrip-c{color:#fff;background:#B8860B}
 .car .slot{margin-bottom:5px;width:100%}
 
 /* ---------- 名单表 ---------- */
@@ -250,19 +253,19 @@ table.grid tbody tr:hover{background:var(--bg)}
     <section id="view-cars" style="display:none">
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-body hintbox">
-          婚车安排分两栏：<b>接亲安排</b>填每辆车的角色 / 司机 / 集合信息；<b>返程座位安排</b>排婚礼结束后回酒店的车上座位（点空位直接打字填姓名）。主驾一般填司机，不计入宾客统计。
+          婚车安排分两栏：左栏 <b>接亲座位</b>、右栏 <b>返程座位</b>，都是点空位直接打字填姓名（回车确认），再点已填的名字即可修改或删除。同一人去程、返程各填各的，互不影响。
         </div>
       </div>
       <div class="cars2">
         <div class="ccol">
           <div class="panel">
-            <h3>接亲安排<span class="sp">车队分工 / 司机</span></h3>
+            <h3>接亲座位<span class="sp">点空位直接打字</span></h3>
             <div class="panel-body"><div id="carsPlan"></div></div>
           </div>
         </div>
         <div class="ccol">
           <div class="panel">
-            <h3>返程座位安排<span class="sp">回酒店车上座位</span></h3>
+            <h3>返程座位<span class="sp">点空位直接打字</span></h3>
             <div class="panel-body"><div class="cars" id="carsSeats"></div></div>
           </div>
         </div>
@@ -350,8 +353,9 @@ function defState(){
   ];
   S.cars = [];
   for(var i=0;i<6;i++){
-    S.cars.push({ id:uid("c"), name: (i===0?"主车":(i+1)+"号车"), driver:"",
-      seats: CAR_SEATS.map(function(l){ return {label:l, g:null}; }) });
+    S.cars.push({ id:uid("c"), name: (i===0?"主车":(i+1)+"号车"),
+      pseats: CAR_SEATS.map(function(l){ return {label:l, g:null}; }),
+      seats:  CAR_SEATS.map(function(l){ return {label:l, g:null}; }) });
   }
   return S;
 }
@@ -421,13 +425,19 @@ function migrate(o){
   if(!o.meta.seats) o.meta.seats = 10;
   // 婚车：去掉「后排中」（仅在该座位为空时删，避免静默丢人）
   (o.cars||[]).forEach(function(c){
-    if(c.role===undefined) c.role = "";
-    if(c.note===undefined) c.note = "";
+    if(!c.seats) c.seats = [];
+    if(!c.pseats) c.pseats = c.seats.map(function(ss){ return {label:ss.label, g:(ss.g===undefined?null:ss.g)}; });
     (c.seats||[]).forEach(function(s){ if(s.g===undefined) s.g = null; });
+    (c.pseats||[]).forEach(function(s){ if(s.g===undefined) s.g = null; });
     if(c.seats && c.seats.length > CAR_SEATS.length){
       var mid = c.seats.filter(function(s){ return s.label==="后排中"; });
       if(mid.length===1 && !mid[0].g) c.seats = c.seats.filter(function(s){ return s.label!=="后排中"; });
     }
+    if(c.pseats && c.pseats.length > CAR_SEATS.length){
+      var mid2 = c.pseats.filter(function(s){ return s.label==="后排中"; });
+      if(mid2.length===1 && !mid2[0].g) c.pseats = c.pseats.filter(function(s){ return s.label!=="后排中"; });
+    }
+    delete c.role; delete c.driver; delete c.note;
   });
   // 旧默认模板（主桌区 + 每区 8 桌）直接升级为新默认布局：
   // A~D 区各 10 桌，主桌并入 A 区第 1 桌。宾客名单原样保留，旧座位引用失效→回池子。
@@ -463,6 +473,7 @@ function seatOf(gid){        // 返回该宾客所在的宴席座位
 function carSeatOf(gid){
   for(var i=0;i<S.cars.length;i++){
     for(var j=0;j<S.cars[i].seats.length;j++) if(S.cars[i].seats[j].g===gid) return {kind:"c", c:S.cars[i], i:j};
+    for(var j=0;j<S.cars[i].pseats.length;j++) if(S.cars[i].pseats[j].g===gid) return {kind:"p", c:S.cars[i], i:j};
   }
   return null;
 }
@@ -482,22 +493,23 @@ function stats(){
 
 /* ==================== 变更操作 ==================== */
 function doAssign(kind, id, idx, gid){   // 不记快照，供「新建宾客 + 入座」这类组合操作复用
-  // 一人一座：先把他从原位置摘掉
-  var old = seatOf(gid); if(old) old.t.seats[old.i] = null;
-  var oc = carSeatOf(gid); if(oc) oc.c.seats[oc.i].g = null;
+  // 各位置域独立：宴席(t) / 接亲(p) / 返程(c) 互不干扰，同域内保持一人一座
+  function clearTrip(trip){
+    if(trip==="t"){ var s=seatOf(gid); if(s) s.t.seats[s.i]=null; }
+    else S.cars.forEach(function(cc){ var a=(trip==="p"?cc.pseats:cc.seats); for(var k=0;k<a.length;k++) if(a[k].g===gid) a[k].g=null; });
+  }
   if(kind==="t"){
+    clearTrip("t");
     var t = findTable(id).t, occ = t.seats[idx];
     t.seats[idx] = gid;
-    if(occ){                                   // 被顶掉的人回池子
-      var s2 = seatOf(occ); if(s2) s2.t.seats[s2.i] = null;
-      var s4 = carSeatOf(occ); if(s4) s4.c.seats[s4.i].g = null;
-    }
+    if(occ){ var s2=seatOf(occ); if(s2) s2.t.seats[s2.i]=null; }   // 顶掉的人回池子（仅宴席域）
   }else{
-    var c = findCar(id), occ2 = c.seats[idx].g;
-    c.seats[idx].g = gid;
-    if(occ2){
-      var s3 = seatOf(occ2); if(s3) s3.t.seats[s3.i] = null;
-      var s5 = carSeatOf(occ2); if(s5) s5.c.seats[s5.i].g = null;
+    clearTrip(kind);                          // 同一趟内一人一座
+    var c = findCar(id), arr = (kind==="p"?c.pseats:c.seats), occ2 = arr[idx].g;
+    arr[idx].g = gid;
+    if(occ2 && occ2!==gid){
+      S.cars.forEach(function(cc){ var a=(kind==="p"?cc.pseats:cc.seats); for(var k=0;k<a.length;k++) if(a[k].g===occ2) a[k].g=null; });
+      arr[idx].g = gid;                        // 顶掉的人清掉后，重新占回当前座
     }
   }
 }
@@ -509,13 +521,13 @@ function assign(kind, id, idx, gid){
 function unassign(kind, id, idx){
   snapshot();
   if(kind==="t"){ var t=findTable(id); if(t.t.seats[idx]) t.t.seats[idx]=null; }
-  else { var c=findCar(id); c.seats[idx].g = null; }
+  else { var c=findCar(id); var a2=(kind==="p"?c.pseats:c.seats); a2[idx].g = null; }
   save(); render();
 }
 function swapSeats(a, b){    // a,b = {kind,id,i}
   snapshot();
-  function get(x){ return x.kind==="t" ? findTable(x.id).t.seats[x.i] : findCar(x.id).seats[x.i].g; }
-  function set(x,v){ if(x.kind==="t") findTable(x.id).t.seats[x.i]=v; else findCar(x.id).seats[x.i].g=v; }
+  function get(x){ return x.kind==="t" ? findTable(x.id).t.seats[x.i] : (x.kind==="p"?findCar(x.id).pseats[x.i].g:findCar(x.id).seats[x.i].g); }
+  function set(x,v){ if(x.kind==="t"){ findTable(x.id).t.seats[x.i]=v; return; } var cc=findCar(x.id), a=(x.kind==="p"?cc.pseats:cc.seats); a[x.i].g=v; }
   var va = get(a), vb = get(b);
   set(a, vb); set(b, va);
   save(); render();
@@ -529,7 +541,10 @@ function addGuest(name, tag){
 function delGuest(id){
   snapshot();
   var s = seatOf(id); if(s) s.t.seats[s.i] = null;
-  var c = carSeatOf(id); if(c) c.c.seats[c.i].g = null;
+  S.cars.forEach(function(c){
+    c.seats.forEach(function(x){ if(x.g===id) x.g=null; });
+    c.pseats.forEach(function(x){ if(x.g===id) x.g=null; });
+  });
   S.guests = S.guests.filter(function(g){ return g.id!==id; });
   save(); render();
 }
@@ -728,31 +743,32 @@ function renderSeatPane(){
   }
 }
 
+function carSlotsHTML(c, kind){
+  var arr = (kind==="p" ? c.pseats : c.seats);
+  return arr.map(function(s, i){
+    if(isEditing(kind, c.id, i)){ return editBoxHTML(); }
+    var g = s.g ? guestById(s.g) : null;
+    var cls = "slot" + (g?" filled":"") + (!g && selGuest ? " hint":"");
+    var txt = g ? esc(g.name) : (selGuest ? "安排 " + esc((guestById(selGuest)||{}).name||"") : "空位");
+    var dot = g ? '<i class="dot" style="width:7px;height:7px;border-radius:50%;background:'+tagOf(g.tag).c+';flex:none"></i>' : "";
+    return '<div class="'+cls+'" data-drop="seat" data-kind="'+kind+'" data-id="'+c.id+'" data-i="'+i+'">'
+      +  '<span class="idx" style="min-width:44px">'+esc(s.label)+'</span>' + dot
+      +  '<span class="nm">'+txt+'</span>' + (g?'<span class="x" data-del="'+g.id+'">&times;</span>':"") + '</div>';
+  }).join("");
+}
 function renderCarsPlan(){
   document.getElementById("carsPlan").innerHTML = S.cars.map(function(c){
-    return '<div class="plan-card"><div class="cp-hd"><span class="cname">'+esc(c.name)+'</span>'
-      + '<button class="ghost sm no-print cdel" data-cardel="'+c.id+'">删除</button></div>'
-      + '<div class="cp-row"><label>角色</label><input data-crole="'+c.id+'" value="'+esc(c.role)+'" placeholder="头车 / 伴郎车 / 摄像车…"></div>'
-      + '<div class="cp-row"><label>司机</label><input data-cdrv="'+c.id+'" value="'+esc(c.driver)+'" placeholder="姓名 / 电话"></div>'
-      + '<div class="cp-row"><label>集合</label><input data-cnote="'+c.id+'" value="'+esc(c.note)+'" placeholder="时间 / 地点 / 备注"></div>'
-      + '</div>';
+    var h = '<div class="car"><div class="car-hd"><span class="cname">'+esc(c.name)+'</span>'
+      + '<span class="ctrip ctrip-p">接亲</span>'
+      + '<button class="ghost sm no-print cdel" data-cardel="'+c.id+'" style="margin-left:auto">删除</button></div>';
+    return h + carSlotsHTML(c, "p") + '</div>';
   }).join("");
 }
 function renderCars(){
   document.getElementById("carsSeats").innerHTML = S.cars.map(function(c){
     var h = '<div class="car"><div class="car-hd"><span class="cname">'+esc(c.name)+'</span>'
-      + '<span class="cdrv">'+(c.role?esc(c.role):(c.driver?esc(c.driver):""))+'</span></div>';
-    c.seats.forEach(function(s, i){
-      if(isEditing("c", c.id, i)){ h += editBoxHTML(); return; }
-      var g = s.g ? guestById(s.g) : null;
-      var cls = "slot" + (g?" filled":"") + (!g && selGuest ? " hint":"");
-      var txt = g ? esc(g.name) : (selGuest ? "安排 " + esc((guestById(selGuest)||{}).name||"") : "空位");
-      var dot = g ? '<i class="dot" style="width:7px;height:7px;border-radius:50%;background:'+tagOf(g.tag).c+';flex:none"></i>' : "";
-      h += '<div class="'+cls+'" data-drop="seat" data-kind="c" data-id="'+c.id+'" data-i="'+i+'">'
-        +  '<span class="idx" style="min-width:44px">'+esc(s.label)+'</span>' + dot
-        +  '<span class="nm">'+txt+'</span>' + (g?'<span class="x" data-del="'+g.id+'">&times;</span>':"") + '</div>';
-    });
-    return h + '</div>';
+      + '<span class="ctrip ctrip-c">返程</span></div>';
+    return h + carSlotsHTML(c, "c") + '</div>';
   }).join("");
 }
 
@@ -786,9 +802,11 @@ function renderExport(){
     });
   });
   var carH = S.cars.map(function(c){
-    var li = c.seats.map(function(s){ var g = s.g?guestById(s.g):null; return '<li>'+esc(s.label)+'：'+(g?esc(g.name):"（空）")+'</li>'; }).join("");
-    var meta = [c.role, c.driver, c.note].filter(Boolean).join(" · ") || "未填";
-    return '<div class="pcard"><h5>'+esc(c.name)+'</h5><div class="meta">'+esc(meta)+'</div><ul style="margin:0;padding-left:18px">'+li+'</ul></div>';
+    var jli = c.pseats.map(function(s){ var g=s.g?guestById(s.g):null; return '<li>'+esc(s.label)+'：'+(g?esc(g.name):"（空）")+'</li>'; }).join("");
+    var fli = c.seats.map(function(s){ var g=s.g?guestById(s.g):null; return '<li>'+esc(s.label)+'：'+(g?esc(g.name):"（空）")+'</li>'; }).join("");
+    return '<div class="pcard"><h5>'+esc(c.name)+'</h5>'
+      + '<div class="meta">接亲</div><ul style="margin:0;padding-left:18px">'+jli+'</ul>'
+      + '<div class="meta" style="margin-top:6px">返程</div><ul style="margin:0;padding-left:18px">'+fli+'</ul></div>';
   }).join("");
   document.getElementById("printGrid").innerHTML = h + carH;
 }
@@ -876,7 +894,7 @@ document.addEventListener("click", function(e){
   if(e.target.closest && e.target.closest(".slot-input")) return;   // 正在输入，交给输入框
   var del = e.target.closest("[data-del]");
   if(del){ var dg = del.dataset.del; var s = seatOf(dg) || carSeatOf(dg);
-           if(s) unassign(s.kind==="t"?"t":"c", s.kind==="t"?s.t.id:s.c.id, s.i); return; }
+           if(s) unassign(s.kind==="t"?"t":s.kind, s.kind==="t"?s.t.id:s.c.id, s.i); return; }
   var tbl = e.target.closest("[data-tbl]");
   if(tbl){ selTable = tbl.dataset.tbl; railTab = "seats"; render(); return; }
   // 点「宾客池」里的名字 = 选中（再点空位即可入座，纯点选、不拖拽）
@@ -885,7 +903,7 @@ document.addEventListener("click", function(e){
   var slot = e.target.closest("[data-drop='seat']");
   if(slot){
     var kind = slot.dataset.kind, id = slot.dataset.id, i = parseInt(slot.dataset.i,10);
-    var cur = kind==="t" ? findTable(id).t.seats[i] : findCar(id).seats[i].g;
+    var cur = kind==="t" ? findTable(id).t.seats[i] : (kind==="p"?findCar(id).pseats[i].g:findCar(id).seats[i].g);
     if(!cur && selGuest){ var g = selGuest; selGuest = null; assign(kind, id, i, g); }  // 点名字→点空位：放完即清空选中
     else if(!cur){ startEdit(kind, id, i); }                        // 空位直接打字建人
     else { selGuest = (selGuest===cur) ? null : cur; render(); }
@@ -901,16 +919,14 @@ document.addEventListener("click", function(e){
   if(e.target.id==="btnAddZone"){ var nm = prompt("新区名称（如：D 区）","D 区"); if(nm){ snapshot(); S.zones.push(mkZone(nm, 6, S.meta.seats)); save(); render(); } return; }
   if(e.target.id==="btnAddCar"){
     snapshot();
-    S.cars.push({ id:uid("c"), name:(S.cars.length+1)+"号车", role:"", driver:"", note:"",
-      seats: CAR_SEATS.map(function(l){ return {label:l,g:null}; }) });
+    S.cars.push({ id:uid("c"), name:(S.cars.length+1)+"号车",
+      pseats: CAR_SEATS.map(function(l){ return {label:l,g:null}; }),
+      seats:  CAR_SEATS.map(function(l){ return {label:l,g:null}; }) });
     save(); render(); return;
   }
 });
 document.addEventListener("input", function(e){
-  var d = e.target.dataset || {};
-  if(d.cdrv){ var c = findCar(d.cdrv); if(c){ c.driver = e.target.value; save(); } }
-  else if(d.crole){ var c2 = findCar(d.crole); if(c2){ c2.role = e.target.value; save(); } }
-  else if(d.cnote){ var c3 = findCar(d.cnote); if(c3){ c3.note = e.target.value; save(); } }
+  /* 婚车座位已全部改为「点空位直接打字」，不再有角色 / 司机 / 集合输入框 */
 });
 
 /* ==================== 弹窗 ==================== */
@@ -1059,9 +1075,12 @@ document.getElementById("btnCsv").onclick = function(){
       rows.push(["宴席", z.name, t.name, "第"+(i+1)+"座", x?x.name:"", x?x.tag:""]);
     });
   }); });
-  S.cars.forEach(function(c){ c.seats.forEach(function(s){
+  S.cars.forEach(function(c){ c.pseats.forEach(function(s){
     var x = s.g?guestById(s.g):null;
-    rows.push(["婚车", c.name, c.driver||"", s.label, x?x.name:"", x?x.tag:""]);
+    rows.push(["婚车·接亲", c.name, s.label, "", x?x.name:"", x?x.tag:""]);
+  }); c.seats.forEach(function(s){
+    var x = s.g?guestById(s.g):null;
+    rows.push(["婚车·返程", c.name, s.label, "", x?x.name:"", x?x.tag:""]);
   }); });
   var csv = "\uFEFF" + rows.map(function(r){
     return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(",");
